@@ -11,7 +11,7 @@ export function Dashboard() {
       <Navigation />
       <main className="section-container">
         <div className="section-header">
-          <h1 className="section-title bg-gradient-to-r from-primary via-blue-400 to-purple-400 bg-clip-text text-transparent font-bold">AnalogiAI</h1>
+          <h1 className="section-title bg-gradient-to-r from-primary via-blue-400 to-purple-400 bg-clip-text font-bold text-[#ffc31f]">AnalogiAI</h1>
           <p className="section-subtitle">
             Generate personalized analogies to understand complex concepts
           </p>
