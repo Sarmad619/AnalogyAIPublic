@@ -1,111 +1,133 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Lightbulb, Heart, GraduationCap, Wand2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { generateAnalogySchema } from "@shared/schema";
-import { api, type GenerateAnalogyRequest } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
+import { Brain, Users, GraduationCap, Wand2, Plus, X } from "lucide-react";
+
+const formSchema = z.object({
+  concept: z.string().min(1, "Please enter a concept to understand"),
+  context: z.string().optional(),
+  personalization: z.object({
+    knowledgeLevel: z.enum(["beginner", "intermediate", "advanced"]),
+  }),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 interface AnalogyFormProps {
-  onSuccess: (result: any) => void;
-  isLoading: boolean;
+  onAnalogy: (analogy: any) => void;
 }
 
-export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
+export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
   const { toast } = useToast();
   const [interestsInput, setInterestsInput] = useState("");
+  const [interests, setInterests] = useState<string[]>([]);
 
-  // Get user profile for default values
-  const { data: profile } = useQuery({
-    queryKey: ["/api/profile"],
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  const form = useForm<GenerateAnalogyRequest>({
-    resolver: zodResolver(generateAnalogySchema),
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      topic: "",
+      concept: "",
       context: "",
       personalization: {
-        interests: [],
         knowledgeLevel: "intermediate",
       },
     },
   });
 
   const generateMutation = useMutation({
-    mutationFn: api.generateAnalogy,
-    onSuccess: (data) => {
-      onSuccess(data);
-      queryClient.invalidateQueries({ queryKey: ["/api/history"] });
-      toast({
-        title: "Analogy Generated!",
-        description: "Your personalized analogy is ready.",
+    mutationFn: async (data: FormData) => {
+      return await apiRequest("/api/analogy", "POST", {
+        ...data,
+        personalization: {
+          ...data.personalization,
+          interests,
+        },
       });
     },
-    onError: (error: Error) => {
+    onSuccess: (analogy) => {
+      onAnalogy(analogy);
       toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate analogy. Please try again.",
+        title: "Analogy generated",
+        description: "Your personalized analogy has been created!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to generate analogy. Please try again.",
         variant: "destructive",
       });
     },
   });
 
-  const onSubmit = (data: GenerateAnalogyRequest) => {
-    // Parse interests from comma-separated string if provided
-    if (interestsInput.trim()) {
-      data.personalization.interests = interestsInput
-        .split(",")
-        .map(i => i.trim())
-        .filter(i => i.length > 0);
-    }
-    
+  const onSubmit = (data: FormData) => {
     generateMutation.mutate(data);
   };
 
-  // Set interests from profile when it loads
-  useEffect(() => {
-    if (profile && (profile as any).personalizationInterests) {
-      const profileData = profile as any;
-      setInterestsInput(profileData.personalizationInterests.join(", "));
-      form.setValue("personalization.interests", profileData.personalizationInterests);
-      form.setValue("personalization.knowledgeLevel", profileData.defaultKnowledgeLevel);
+  const addInterest = () => {
+    if (interestsInput.trim() && !interests.includes(interestsInput.trim())) {
+      setInterests([...interests, interestsInput.trim()]);
+      setInterestsInput("");
     }
-  }, [profile, form]);
+  };
+
+  const removeInterest = (interest: string) => {
+    setInterests(interests.filter((i) => i !== interest));
+  };
+
+  const isLoading = generateMutation.isPending;
 
   return (
-    <div className="glassmorphism-strong rounded-2xl p-8 shadow-2xl">
+    <div className="card-minimal p-6">
+      <div className="section-header">
+        <h2 className="text-xl font-bold text-white mb-2">Generate Analogy</h2>
+        <p className="text-muted-foreground">
+          Transform complex concepts into simple, relatable analogies
+        </p>
+      </div>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Topic Input */}
+          {/* Concept Input */}
           <FormField
             control={form.control}
-            name="topic"
+            name="concept"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center text-base font-semibold text-gray-200 mb-3">
-                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center mr-2">
-                    <Lightbulb className="text-primary-foreground" size={14} />
+                <FormLabel className="flex items-center text-base font-medium text-white mb-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center mr-3">
+                    <Brain className="text-primary-foreground" size={14} />
                   </div>
                   What concept would you like to understand?
                 </FormLabel>
                 <FormControl>
-                  <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-2 focus-within:border-primary focus-within:shadow-lg focus-within:shadow-primary/20 transition-all">
-                    <Input
-                      {...field}
-                      placeholder="e.g., Quantum physics, Machine learning, Economic inflation..."
-                      className="bg-black/30 border border-white/20 text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none focus:border-primary/50 focus:bg-black/40 p-4 w-full rounded-lg transition-all"
-                      disabled={isLoading}
-                    />
-                  </div>
+                  <Input
+                    {...field}
+                    placeholder="e.g., Quantum physics, Machine learning, Economic inflation..."
+                    className="input-minimal text-lg"
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -118,87 +140,114 @@ export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
             name="context"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center text-base font-semibold text-gray-200 mb-3">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-2">
-                    <GraduationCap className="text-white" size={14} />
+                <FormLabel className="flex items-center text-base font-medium text-white mb-3">
+                  <div className="w-6 h-6 bg-secondary border border-border rounded-full flex items-center justify-center mr-3">
+                    <Users className="text-foreground" size={14} />
                   </div>
                   Additional context (optional)
                 </FormLabel>
                 <FormControl>
-                  <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-2 focus-within:border-green-500 focus-within:shadow-lg focus-within:shadow-green-500/20 transition-all">
-                    <Textarea
-                      {...field}
-                      placeholder="Provide any specific context about how you'll use this knowledge..."
-                      rows={3}
-                      className="bg-black/30 border border-white/20 text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none focus:border-green-500/50 focus:bg-black/40 p-4 resize-none w-full rounded-lg transition-all"
-                      disabled={isLoading}
-                    />
-                  </div>
+                  <Textarea
+                    {...field}
+                    placeholder="Provide any specific context about how you'll use this knowledge..."
+                    rows={3}
+                    className="input-minimal resize-none"
+                    disabled={isLoading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Personalization Section */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="flex items-center text-base font-semibold text-gray-200 mb-3">
-                <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center mr-2">
-                  <Heart className="text-white" size={14} />
-                </div>
-                Your interests
-              </label>
-              <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-2 focus-within:border-pink-500 focus-within:shadow-lg focus-within:shadow-pink-500/20 transition-all">
-                <Input
-                  value={interestsInput}
-                  onChange={(e) => setInterestsInput(e.target.value)}
-                  placeholder="e.g., cooking, sports, music, movies..."
-                  className="bg-black/30 border border-white/20 text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none focus:border-pink-500/50 focus:bg-black/40 p-4 w-full rounded-lg transition-all"
-                  disabled={isLoading}
-                />
+          {/* Interests Section */}
+          <div>
+            <label className="flex items-center text-base font-medium text-white mb-3">
+              <div className="w-6 h-6 bg-primary/80 rounded-full flex items-center justify-center mr-3">
+                <Plus className="text-primary-foreground" size={14} />
               </div>
-            </div>
+              Your interests
+            </label>
             
-            <FormField
-              control={form.control}
-              name="personalization.knowledgeLevel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center text-base font-semibold text-gray-200 mb-3">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-2">
-                      <GraduationCap className="text-white" size={14} />
-                    </div>
-                    Knowledge level
-                  </FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
-                    <FormControl>
-                      <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-2 focus-within:border-blue-500 focus-within:shadow-lg focus-within:shadow-blue-500/20 transition-all">
-                        <SelectTrigger className="bg-black/30 border border-white/20 text-white text-lg focus:ring-0 focus:outline-none focus:border-blue-500/50 focus:bg-black/40 p-4 w-full rounded-lg transition-all">
-                          <SelectValue placeholder="Select your knowledge level" />
-                        </SelectTrigger>
-                      </div>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex space-x-2 mb-3">
+              <Input
+                value={interestsInput}
+                onChange={(e) => setInterestsInput(e.target.value)}
+                placeholder="e.g., cooking, sports, music, movies..."
+                className="input-minimal flex-1"
+                disabled={isLoading}
+                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addInterest())}
+              />
+              <Button
+                type="button"
+                onClick={addInterest}
+                className="btn-secondary"
+                disabled={!interestsInput.trim() || isLoading}
+              >
+                Add
+              </Button>
+            </div>
+
+            {/* Interest Tags */}
+            {interests.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {interests.map((interest) => (
+                  <div
+                    key={interest}
+                    className="flex items-center bg-primary/20 text-primary px-3 py-1 rounded-full text-sm"
+                  >
+                    {interest}
+                    <button
+                      type="button"
+                      onClick={() => removeInterest(interest)}
+                      className="ml-2 text-primary hover:text-primary/80"
+                      disabled={isLoading}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* Knowledge Level */}
+          <FormField
+            control={form.control}
+            name="personalization.knowledgeLevel"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center text-base font-medium text-white mb-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                    <GraduationCap className="text-white" size={14} />
+                  </div>
+                  Knowledge level
+                </FormLabel>
+                <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
+                  <FormControl>
+                    <SelectTrigger className="input-minimal">
+                      <SelectValue placeholder="Select your knowledge level" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Generate Button */}
           <Button 
             type="submit"
-            disabled={isLoading || generateMutation.isPending}
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
+            className="w-full btn-primary text-lg py-3 flex items-center justify-center space-x-2"
           >
-            <Wand2 className="mr-2" size={20} />
-            {generateMutation.isPending ? "Generating..." : "Generate Personalized Analogy"}
+            <Wand2 size={20} />
+            <span>{isLoading ? "Generating..." : "Generate Personalized Analogy"}</span>
           </Button>
         </form>
       </Form>

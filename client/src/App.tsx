@@ -6,9 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigation } from "@/components/navigation";
 import { Landing } from "@/pages/landing";
-import Dashboard from "@/pages/dashboard";
-import HistoryPage from "@/pages/history";
-import ProfilePage from "@/pages/profile";
+import { Dashboard } from "@/pages/dashboard";
+import { History } from "@/pages/history";
+import { Profile } from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -38,8 +38,8 @@ function Router() {
       <Navigation />
       <Switch>
         <Route path="/" component={Dashboard} />
-        <Route path="/history" component={HistoryPage} />
-        <Route path="/profile" component={ProfilePage} />
+        <Route path="/history" component={History} />
+        <Route path="/profile" component={Profile} />
         <Route component={NotFound} />
       </Switch>
     </>
@@ -50,7 +50,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="min-h-screen bg-gradient-bg text-white font-mono">
+        <div className="min-h-screen bg-background text-foreground">
           <Toaster />
           <Router />
         </div>

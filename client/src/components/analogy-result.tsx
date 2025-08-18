@@ -1,58 +1,48 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, Bookmark, ThumbsUp, TrendingDown, TrendingUp, Quote, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { api, type AnalogyResponse } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Heart, ThumbsUp, Copy, Check } from "lucide-react";
 
-// Function to format text content with markdown-like styling
+interface AnalogyResultProps {
+  analogy: any;
+}
+
 function formatTextContent(text: string): string {
   return text
-    // Convert ### headers to styled headings with colored backgrounds
-    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold text-white bg-gradient-to-r from-primary/20 to-transparent px-3 py-2 rounded-lg mb-3 mt-4 border-l-4 border-primary">$1</h3>')
+    // Convert ### headers to styled headings
+    .replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold text-primary mb-4 mt-6 first:mt-0">$1</h3>')
     // Convert **bold** to styled bold text with highlight
     .replace(/\*\*(.+?)\*\*/g, '<span class="highlight-text">$1</span>')
     // Convert line breaks to paragraphs
-    .replace(/\n\n/g, '</p><p class="mb-3">')
+    .replace(/\n\n/g, '</p><p class="mb-4">')
     // Wrap in paragraph tags
-    .replace(/^/, '<p class="mb-3">')
-    .replace(/$/, '</p>')
+    .replace(/^(.+)$/, '<p class="mb-4">$1</p>')
     // Clean up empty paragraphs
-    .replace(/<p class="mb-3"><\/p>/g, '');
+    .replace(/<p class="mb-4"><\/p>/g, '');
 }
 
-interface AnalogyResultProps {
-  result: AnalogyResponse;
-  onRegenerate?: (newResult: AnalogyResponse) => void;
-}
-
-export function AnalogyResult({ result, onRegenerate }: AnalogyResultProps) {
+export function AnalogyResult({ analogy }: AnalogyResultProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isFavorited, setIsFavorited] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const regenerateMutation = useMutation({
-    mutationFn: async (feedback: string) => {
-      if (!result.id) {
-        throw new Error("Cannot regenerate analogy without ID");
-      }
-      return api.regenerateAnalogy({
-        previousAnalogyId: result.id,
-        feedback,
+  const feedbackMutation = useMutation({
+    mutationFn: async ({ feedback }: { feedback: 'helpful' | 'not_helpful' }) => {
+      return await apiRequest(`/api/analogy/${analogy.id}/feedback`, "POST", { feedback });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/history'] });
+      toast({
+        title: "Feedback recorded",
+        description: "Thank you for your feedback!",
       });
     },
-    onSuccess: (data) => {
-      onRegenerate?.(data);
-      queryClient.invalidateQueries({ queryKey: ["/api/history"] });
+    onError: () => {
       toast({
-        title: "Analogy Regenerated!",
-        description: "A new perspective has been generated for you.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Regeneration Failed",
-        description: error.message || "Failed to regenerate analogy. Please try again.",
+        title: "Error",
+        description: "Failed to record feedback",
         variant: "destructive",
       });
     },
@@ -60,178 +50,99 @@ export function AnalogyResult({ result, onRegenerate }: AnalogyResultProps) {
 
   const favoriteMutation = useMutation({
     mutationFn: async () => {
-      if (!result.id) {
-        throw new Error("Cannot favorite analogy without ID");
-      }
-      return api.toggleFavorite(result.id, !isFavorited);
+      return await apiRequest(`/api/analogy/${analogy.id}/favorite`, "POST");
     },
-    onSuccess: (data) => {
-      setIsFavorited(data.isFavorite);
-      queryClient.invalidateQueries({ queryKey: ["/api/history"] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/history'] });
       toast({
-        title: data.isFavorite ? "Added to Favorites" : "Removed from Favorites",
-        description: data.isFavorite ? "This analogy has been saved to your favorites." : "This analogy has been removed from your favorites.",
+        title: analogy.isFavorite ? "Removed from favorites" : "Added to favorites",
+        description: analogy.isFavorite ? "Analogy removed from your favorites" : "Analogy saved to your favorites",
       });
     },
-    onError: (error: Error) => {
+    onError: () => {
       toast({
-        title: "Failed to Update",
-        description: error.message || "Failed to update favorite status.",
+        title: "Error",
+        description: "Failed to update favorites",
         variant: "destructive",
       });
     },
   });
 
-  // Feedback mutation for "Helpful" button
-  const feedbackMutation = useMutation({
-    mutationFn: async (helpful: boolean) => {
-      if (!result.id) {
-        throw new Error("Cannot submit feedback without analogy ID");
-      }
-      return api.submitFeedback(result.id, helpful);
-    },
-    onSuccess: (data) => {
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(analogy.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
       toast({
-        title: "Feedback Submitted",
-        description: data.message,
+        title: "Copied to clipboard",
+        description: "Analogy content copied successfully",
       });
-    },
-    onError: (error: Error) => {
+    } catch (error) {
       toast({
-        title: "Feedback Failed",
-        description: error.message || "Failed to submit feedback.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleRegenerate = (feedbackType: string) => {
-    regenerateMutation.mutate(feedbackType);
-  };
-
-  const handleFeedback = (helpful: boolean) => {
-    feedbackMutation.mutate(helpful);
-  };
-
-  const handleFavorite = () => {
-    if (result.id) {
-      favoriteMutation.mutate();
-    } else {
-      toast({
-        title: "Cannot Save",
-        description: "This analogy cannot be saved because it wasn't stored.",
+        title: "Failed to copy",
+        description: "Could not copy to clipboard",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="glassmorphism-strong rounded-2xl p-8 shadow-2xl">
-      <div className="flex items-start justify-between mb-6">
+    <div className="card-minimal p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-2xl font-semibold text-white mb-2">Your Personalized Analogy</h3>
-          <p className="text-sm text-gray-400">Topic: <span className="text-gray-300">{result.topic}</span></p>
+          <h3 className="text-xl font-bold text-white">{analogy.concept}</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Generated on {new Date(analogy.createdAt).toLocaleDateString()}
+          </p>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex items-center space-x-2">
           <Button
-            onClick={() => handleRegenerate("different-angle")}
-            disabled={regenerateMutation.isPending}
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="glassmorphism border-glass-border text-gray-300 hover:text-white hover:border-cyan-400 transition-all"
+            onClick={handleCopy}
+            className="text-muted-foreground hover:text-white"
           >
-            <RefreshCw className={`mr-1 ${regenerateMutation.isPending ? 'animate-spin' : ''}`} size={14} />
-            Regenerate
+            {copied ? <Check size={16} /> : <Copy size={16} />}
           </Button>
           <Button
-            onClick={handleFavorite}
-            disabled={favoriteMutation.isPending || !result.id}
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className={`glassmorphism border-glass-border transition-all ${
-              isFavorited 
-                ? 'text-yellow-400 border-yellow-400 hover:text-yellow-300' 
-                : 'text-gray-300 hover:text-white hover:border-green-400'
+            onClick={() => favoriteMutation.mutate()}
+            disabled={favoriteMutation.isPending}
+            className={`${
+              analogy.isFavorite 
+                ? 'text-primary hover:text-primary/80' 
+                : 'text-muted-foreground hover:text-primary'
             }`}
           >
-            <Bookmark className="mr-1" size={14} />
-            {isFavorited ? 'Saved' : 'Save'}
+            <Heart size={16} fill={analogy.isFavorite ? 'currentColor' : 'none'} />
           </Button>
         </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Analogy Content */}
-        <div className="glassmorphism-strong border-2 border-cyan-400/30 rounded-xl p-8 shadow-lg">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center mr-3">
-              <Quote className="text-white" size={20} />
-            </div>
-            <h4 className="text-xl font-bold text-cyan-300">The Analogy</h4>
-          </div>
-          <div className="bg-black/20 rounded-lg p-6 border border-cyan-400/20">
-            <div 
-              className="text-gray-100 text-lg leading-loose font-medium formatted-content"
-              dangerouslySetInnerHTML={{
-                __html: formatTextContent(result.analogy)
-              }}
-            />
-          </div>
-        </div>
+      {/* Content */}
+      <div 
+        className="formatted-content text-foreground leading-relaxed"
+        dangerouslySetInnerHTML={{ __html: formatTextContent(analogy.content) }}
+      />
 
-        {/* Practical Example */}
-        <div className="glassmorphism-strong border-2 border-purple-400/30 rounded-xl p-8 shadow-lg">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mr-3">
-              <Lightbulb className="text-white" size={20} />
-            </div>
-            <h4 className="text-xl font-bold text-purple-300">Real-World Example</h4>
-          </div>
-          <div className="bg-black/20 rounded-lg p-6 border border-purple-400/20">
-            <div 
-              className="text-gray-100 text-lg leading-loose font-medium formatted-content"
-              dangerouslySetInnerHTML={{
-                __html: formatTextContent(result.example)
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Feedback Section */}
-        <div className="border-t border-glass-border pt-6">
-          <p className="text-sm text-gray-400 mb-3">Was this analogy helpful?</p>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              onClick={() => handleFeedback(true)}
-              disabled={feedbackMutation.isPending}
-              variant="outline"
-              size="sm"
-              className="bg-green-500/20 text-green-300 border-green-400/30 hover:bg-green-500/30 transition-all"
-            >
-              <ThumbsUp className="mr-1" size={14} />
-              Helpful
-            </Button>
-            <Button
-              onClick={() => handleRegenerate("too-simple")}
-              disabled={regenerateMutation.isPending}
-              variant="outline"
-              size="sm"
-              className="bg-yellow-500/20 text-yellow-300 border-yellow-400/30 hover:bg-yellow-500/30 transition-all"
-            >
-              <TrendingDown className="mr-1" size={14} />
-              Too Simple
-            </Button>
-            <Button
-              onClick={() => handleRegenerate("too-complex")}
-              disabled={regenerateMutation.isPending}
-              variant="outline"
-              size="sm"
-              className="bg-red-500/20 text-red-300 border-red-400/30 hover:bg-red-500/30 transition-all"
-            >
-              <TrendingUp className="mr-1" size={14} />
-              Too Complex
-            </Button>
-          </div>
+      {/* Feedback */}
+      <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
+        <p className="text-sm text-muted-foreground">
+          Was this analogy helpful?
+        </p>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => feedbackMutation.mutate({ feedback: 'helpful' })}
+            disabled={feedbackMutation.isPending}
+            className="text-muted-foreground hover:text-primary flex items-center space-x-1"
+          >
+            <ThumbsUp size={16} />
+            <span>Helpful</span>
+          </Button>
         </div>
       </div>
     </div>

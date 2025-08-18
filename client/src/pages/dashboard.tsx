@@ -1,65 +1,47 @@
 import { useState } from "react";
+import { Navigation } from "@/components/navigation";
 import { AnalogyForm } from "@/components/analogy-form";
 import { AnalogyResult } from "@/components/analogy-result";
-import { LoadingState } from "@/components/loading-state";
-import { type AnalogyResponse } from "@/lib/api";
 
-export default function Dashboard() {
-  const [currentResult, setCurrentResult] = useState<AnalogyResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleFormSuccess = (result: AnalogyResponse) => {
-    setCurrentResult(result);
-    setIsLoading(false);
-  };
-
-  const handleRegenerate = (newResult: AnalogyResponse) => {
-    setCurrentResult(newResult);
-  };
+export function Dashboard() {
+  const [currentAnalogy, setCurrentAnalogy] = useState(null);
 
   return (
-    <div className="min-h-screen pt-16">
-      {/* Background Elements */}
-      <div className="bg-animated" />
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      
+      <main className="section-container">
+        <div className="section-header">
+          <h1 className="section-title">Dashboard</h1>
+          <p className="section-subtitle">
+            Generate personalized analogies to understand complex concepts
+          </p>
+        </div>
 
-      <main className="relative">
-        <section className="min-h-screen flex items-center justify-center px-4 py-12">
-          <div className="max-w-4xl mx-auto w-full">
-            {/* Welcome Section */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                Transform Complex
-                <span className="gradient-text"> Concepts</span>
-                <br />
-                into Simple
-                <span className="gradient-text"> Analogies</span>
-              </h1>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-                Leverage AI to create personalized analogies that make difficult subjects intuitive and engaging, tailored to your unique interests and knowledge level.
-              </p>
-            </div>
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Form Section */}
+          <div>
+            <AnalogyForm onAnalogy={setCurrentAnalogy} />
+          </div>
 
-            {/* Main Form */}
-            <div className="mb-8">
-              <AnalogyForm onSuccess={handleFormSuccess} isLoading={isLoading} />
-            </div>
-
-            {/* Loading State */}
-            {isLoading && (
-              <div className="mb-8">
-                <LoadingState />
+          {/* Result Section */}
+          <div>
+            {currentAnalogy ? (
+              <AnalogyResult analogy={currentAnalogy} />
+            ) : (
+              <div className="card-minimal p-8 text-center">
+                <div className="text-muted-foreground text-4xl mb-4">💭</div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Ready to Learn
+                </h3>
+                <p className="text-muted-foreground">
+                  Generate your first analogy to see it displayed here with formatted content, 
+                  headers, and highlighted key concepts.
+                </p>
               </div>
             )}
-
-            {/* Results */}
-            {currentResult && !isLoading && (
-              <AnalogyResult 
-                result={currentResult} 
-                onRegenerate={handleRegenerate}
-              />
-            )}
           </div>
-        </section>
+        </div>
       </main>
     </div>
   );

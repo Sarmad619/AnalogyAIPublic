@@ -2,333 +2,252 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserCog, Heart, Settings, Save, Plus, X } from "lucide-react";
+import { z } from "zod";
+import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { updateProfileSchema } from "@shared/schema";
-import { api, type UserProfile } from "@/lib/api";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { LoadingState } from "@/components/loading-state";
+import { apiRequest } from "@/lib/queryClient";
+import { User, Settings, Save } from "lucide-react";
 
-type ProfileFormData = {
-  displayName?: string;
-  defaultKnowledgeLevel?: "beginner" | "intermediate" | "advanced";
-  analogyStyle?: "conversational" | "technical" | "creative";
-  saveHistory?: boolean;
-};
+const profileSchema = z.object({
+  interests: z.string().optional(),
+  learningGoals: z.string().optional(),
+  preferredComplexity: z.enum(["simple", "moderate", "detailed"]).optional(),
+});
 
-export default function ProfilePage() {
+type ProfileData = z.infer<typeof profileSchema>;
+
+export function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [newInterest, setNewInterest] = useState("");
 
-  // Get user profile
-  const { data: profile, isLoading, error } = useQuery<UserProfile>({
-    queryKey: ["/api/profile"],
-    refetchOnWindowFocus: false,
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['/api/profile'],
   });
 
-  const form = useForm<ProfileFormData>({
-    resolver: zodResolver(updateProfileSchema.omit({ personalizationInterests: true })),
+  const { data: user } = useQuery({
+    queryKey: ['/api/auth/user'],
+  });
+
+  const form = useForm<ProfileData>({
+    resolver: zodResolver(profileSchema),
     defaultValues: {
-      displayName: profile?.displayName || "",
-      defaultKnowledgeLevel: profile?.defaultKnowledgeLevel || "intermediate",
-      analogyStyle: profile?.analogyStyle || "conversational",
-      saveHistory: profile?.saveHistory ?? true,
+      interests: profile?.interests || "",
+      learningGoals: profile?.learningGoals || "",
+      preferredComplexity: profile?.preferredComplexity || "moderate",
     },
   });
 
-  // Update form when profile loads
-  useState(() => {
-    if (profile) {
-      form.reset({
-        displayName: profile.displayName,
-        defaultKnowledgeLevel: profile.defaultKnowledgeLevel,
-        analogyStyle: profile.analogyStyle,
-        saveHistory: profile.saveHistory,
-      });
-    }
-  });
-
-  const updateProfileMutation = useMutation({
-    mutationFn: api.updateProfile,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      toast({
-        title: "Profile Updated",
-        description: "Your preferences have been saved successfully.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const addInterestMutation = useMutation({
-    mutationFn: async (interest: string) => {
-      if (!profile) throw new Error("Profile not loaded");
-      const updatedInterests = [...profile.personalizationInterests, interest.trim()];
-      return api.updateProfile({ personalizationInterests: updatedInterests });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      setNewInterest("");
-      toast({
-        title: "Interest Added",
-        description: "Your new interest has been added to your profile.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to Add Interest",
-        description: error.message || "Could not add interest. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const removeInterestMutation = useMutation({
-    mutationFn: async (interestToRemove: string) => {
-      if (!profile) throw new Error("Profile not loaded");
-      const updatedInterests = profile.personalizationInterests.filter(
-        interest => interest !== interestToRemove
-      );
-      return api.updateProfile({ personalizationInterests: updatedInterests });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/profile"] });
-      toast({
-        title: "Interest Removed",
-        description: "The interest has been removed from your profile.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to Remove Interest",
-        description: error.message || "Could not remove interest. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit = (data: ProfileFormData) => {
-    updateProfileMutation.mutate(data);
-  };
-
-  const handleAddInterest = () => {
-    if (newInterest.trim() && !profile?.personalizationInterests.includes(newInterest.trim())) {
-      addInterestMutation.mutate(newInterest);
-    }
-  };
-
-  const handleRemoveInterest = (interest: string) => {
-    removeInterestMutation.mutate(interest);
-  };
-
-  if (error) {
-    return (
-      <div className="min-h-screen pt-16">
-        <div className="bg-animated" />
-        <div className="relative max-w-4xl mx-auto px-4 py-12">
-          <div className="glassmorphism-strong rounded-2xl p-8 text-center">
-            <p className="text-red-400 mb-4">Failed to load profile</p>
-            <p className="text-gray-400">{error instanceof Error ? error.message : 'Unknown error'}</p>
-          </div>
-        </div>
-      </div>
-    );
+  // Update form when profile data loads
+  if (profile) {
+    form.reset({
+      interests: profile.interests || "",
+      learningGoals: profile.learningGoals || "",
+      preferredComplexity: profile.preferredComplexity || "moderate",
+    });
   }
+
+  const updateMutation = useMutation({
+    mutationFn: async (data: ProfileData) => {
+      return await apiRequest("/api/profile", "PUT", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/profile'] });
+      toast({
+        title: "Profile updated",
+        description: "Your preferences have been saved successfully!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: ProfileData) => {
+    updateMutation.mutate(data);
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen pt-16">
-        <div className="bg-animated" />
-        <div className="relative max-w-4xl mx-auto px-4 py-12">
-          <LoadingState message="Loading your profile..." submessage="Getting your personalization settings..." />
-        </div>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <main className="section-container">
+          <div className="card-minimal p-6 animate-pulse">
+            <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-4 bg-muted rounded w-1/4"></div>
+              <div className="h-10 bg-muted rounded"></div>
+              <div className="h-4 bg-muted rounded w-1/4"></div>
+              <div className="h-20 bg-muted rounded"></div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-16">
-      <div className="bg-animated" />
+    <div className="min-h-screen bg-background">
+      <Navigation />
       
-      <div className="relative max-w-4xl mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold text-white mb-8 text-center flex items-center justify-center">
-          <UserCog className="mr-3 text-cyan-400" size={32} />
-          Personalization Settings
-        </h1>
+      <main className="section-container">
+        <div className="section-header">
+          <h1 className="section-title">Profile Settings</h1>
+          <p className="section-subtitle">
+            Customize your learning preferences for better personalized analogies
+          </p>
+        </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Interests Management */}
-          <div className="glassmorphism-strong rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-              <Heart className="mr-2 text-pink-400" size={20} />
-              Your Interests
-            </h3>
-            <p className="text-gray-400 text-sm mb-6">Add interests to get more personalized analogies</p>
-            
-            {/* Current Interests */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {profile?.personalizationInterests.map((interest) => (
-                <span
-                  key={interest}
-                  className="px-3 py-1 bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 rounded-full text-sm flex items-center"
-                >
-                  {interest}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveInterest(interest)}
-                    disabled={removeInterestMutation.isPending}
-                    className="ml-2 p-0 h-auto text-cyan-400 hover:text-red-400 transition-colors"
-                  >
-                    <X size={12} />
-                  </Button>
-                </span>
-              ))}
-              {(!profile?.personalizationInterests || profile.personalizationInterests.length === 0) && (
-                <p className="text-gray-500 text-sm italic">No interests added yet</p>
-              )}
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* User Info Card */}
+          <div className="card-minimal p-6">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+                <User className="text-primary-foreground" size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">{user?.firstName || 'User'}</h3>
+                <p className="text-muted-foreground">{user?.email}</p>
+              </div>
             </div>
-
-            {/* Add New Interest */}
-            <div className="flex gap-2">
-              <Input
-                value={newInterest}
-                onChange={(e) => setNewInterest(e.target.value)}
-                placeholder="Add new interest..."
-                className="flex-1 glassmorphism border-glass-border focus:border-cyan-400 focus:ring-cyan-400/20 text-white placeholder-gray-400 text-sm"
-                disabled={addInterestMutation.isPending}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddInterest();
-                  }
-                }}
-              />
-              <Button
-                onClick={handleAddInterest}
-                disabled={!newInterest.trim() || addInterestMutation.isPending}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white"
-              >
-                <Plus size={16} />
-              </Button>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Member since:</span>
+                <span className="text-white">
+                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total analogies:</span>
+                <span className="text-white">{profile?.totalAnalogies || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Favorites:</span>
+                <span className="text-white">{profile?.favoriteCount || 0}</span>
+              </div>
             </div>
           </div>
 
-          {/* Learning Preferences */}
-          <div className="glassmorphism-strong rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-              <Settings className="mr-2 text-blue-400" size={20} />
-              Learning Preferences
-            </h3>
-            <p className="text-gray-400 text-sm mb-6">Customize how analogies are generated for you</p>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="displayName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-300">Display Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          className="glassmorphism border-glass-border focus:border-cyan-400 focus:ring-cyan-400/20 text-white placeholder-gray-400 text-sm"
-                          placeholder="Enter your display name"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="defaultKnowledgeLevel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-300">Default Knowledge Level</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger className="glassmorphism border-glass-border focus:border-cyan-400 focus:ring-cyan-400/20 text-white text-sm">
-                            <SelectValue placeholder="Select knowledge level" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="beginner">Beginner</SelectItem>
-                          <SelectItem value="intermediate">Intermediate</SelectItem>
-                          <SelectItem value="advanced">Advanced</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="analogyStyle"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-300">Analogy Style</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger className="glassmorphism border-glass-border focus:border-cyan-400 focus:ring-cyan-400/20 text-white text-sm">
-                            <SelectValue placeholder="Select analogy style" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="conversational">Conversational</SelectItem>
-                          <SelectItem value="technical">Technical</SelectItem>
-                          <SelectItem value="creative">Creative</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {/* Settings Form */}
+          <div className="lg:col-span-2">
+            <div className="card-minimal p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <Settings className="text-primary" size={20} />
+                <h3 className="text-xl font-bold text-white">Learning Preferences</h3>
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="saveHistory"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between">
-                      <FormLabel className="text-sm font-medium text-gray-300">Save analogy history</FormLabel>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="interests"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium text-white">
+                          Your Interests
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="e.g., cooking, sports, technology, music, travel..."
+                            rows={3}
+                            className="input-minimal resize-none"
+                          />
+                        </FormControl>
+                        <p className="text-sm text-muted-foreground">
+                          Help us create analogies using topics you're familiar with
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <Button
-                  type="submit"
-                  disabled={updateProfileMutation.isPending}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-medium py-3 transition-all mt-6"
-                >
-                  <Save className="mr-2" size={16} />
-                  {updateProfileMutation.isPending ? "Saving..." : "Save Preferences"}
-                </Button>
-              </form>
-            </Form>
+                  <FormField
+                    control={form.control}
+                    name="learningGoals"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium text-white">
+                          Learning Goals
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="What do you hope to achieve with analogies? What subjects interest you most?"
+                            rows={3}
+                            className="input-minimal resize-none"
+                          />
+                        </FormControl>
+                        <p className="text-sm text-muted-foreground">
+                          Tell us about your learning objectives to get more relevant analogies
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="preferredComplexity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium text-white">
+                          Preferred Explanation Style
+                        </FormLabel>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {[
+                            { value: "simple", label: "Simple", desc: "Brief and straightforward" },
+                            { value: "moderate", label: "Moderate", desc: "Balanced detail level" },
+                            { value: "detailed", label: "Detailed", desc: "Comprehensive explanations" }
+                          ].map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => form.setValue('preferredComplexity', option.value as any)}
+                              className={`p-3 rounded-lg border text-left transition-colors ${
+                                field.value === option.value
+                                  ? 'border-primary bg-primary/20 text-primary'
+                                  : 'border-border bg-card hover:bg-card-hover text-foreground'
+                              }`}
+                            >
+                              <div className="font-medium">{option.label}</div>
+                              <div className="text-sm opacity-70">{option.desc}</div>
+                            </button>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button 
+                    type="submit"
+                    disabled={updateMutation.isPending}
+                    className="btn-primary flex items-center space-x-2"
+                  >
+                    <Save size={16} />
+                    <span>{updateMutation.isPending ? "Saving..." : "Save Preferences"}</span>
+                  </Button>
+                </form>
+              </Form>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
