@@ -58,7 +58,8 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
   const generateMutation = useMutation({
     mutationFn: async (data: FormData) => {
       return await apiRequest("/api/analogy", "POST", {
-        ...data,
+        topic: data.concept,
+        context: data.context,
         personalization: {
           ...data.personalization,
           interests,
