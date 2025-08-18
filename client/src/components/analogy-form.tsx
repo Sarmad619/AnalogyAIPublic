@@ -98,11 +98,11 @@ export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
                   What concept would you like to understand?
                 </FormLabel>
                 <FormControl>
-                  <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-1 focus-within:border-primary transition-all">
+                  <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-2 focus-within:border-primary focus-within:shadow-lg focus-within:shadow-primary/20 transition-all">
                     <Input
                       {...field}
                       placeholder="e.g., Quantum physics, Machine learning, Economic inflation..."
-                      className="bg-transparent border-none text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none p-4 w-full"
+                      className="bg-black/30 border border-white/20 text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none focus:border-primary/50 focus:bg-black/40 p-4 w-full rounded-lg transition-all"
                       disabled={isLoading}
                     />
                   </div>
@@ -125,12 +125,12 @@ export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
                   Additional context (optional)
                 </FormLabel>
                 <FormControl>
-                  <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-1 focus-within:border-green-500 transition-all">
+                  <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-2 focus-within:border-green-500 focus-within:shadow-lg focus-within:shadow-green-500/20 transition-all">
                     <Textarea
                       {...field}
                       placeholder="Provide any specific context about how you'll use this knowledge..."
                       rows={3}
-                      className="bg-transparent border-none text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none p-4 resize-none w-full"
+                      className="bg-black/30 border border-white/20 text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none focus:border-green-500/50 focus:bg-black/40 p-4 resize-none w-full rounded-lg transition-all"
                       disabled={isLoading}
                     />
                   </div>
@@ -149,12 +149,12 @@ export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
                 </div>
                 Your interests
               </label>
-              <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-1 focus-within:border-pink-500 transition-all">
+              <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-2 focus-within:border-pink-500 focus-within:shadow-lg focus-within:shadow-pink-500/20 transition-all">
                 <Input
                   value={interestsInput}
                   onChange={(e) => setInterestsInput(e.target.value)}
                   placeholder="e.g., cooking, sports, music, movies..."
-                  className="bg-transparent border-none text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none p-4 w-full"
+                  className="bg-black/30 border border-white/20 text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none focus:border-pink-500/50 focus:bg-black/40 p-4 w-full rounded-lg transition-all"
                   disabled={isLoading}
                 />
               </div>
@@ -173,8 +173,8 @@ export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
                   </FormLabel>
                   <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
                     <FormControl>
-                      <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-1 focus-within:border-blue-500 transition-all">
-                        <SelectTrigger className="bg-transparent border-none text-white text-lg focus:ring-0 focus:outline-none p-4 w-full">
+                      <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-2 focus-within:border-blue-500 focus-within:shadow-lg focus-within:shadow-blue-500/20 transition-all">
+                        <SelectTrigger className="bg-black/30 border border-white/20 text-white text-lg focus:ring-0 focus:outline-none focus:border-blue-500/50 focus:bg-black/40 p-4 w-full rounded-lg transition-all">
                           <SelectValue placeholder="Select your knowledge level" />
                         </SelectTrigger>
                       </div>
