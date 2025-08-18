@@ -17,7 +17,7 @@ export function Dashboard() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="max-w-4xl mx-auto space-y-8">
           {/* Form Section */}
           <div>
             <AnalogyForm onAnalogy={setCurrentAnalogy} />
