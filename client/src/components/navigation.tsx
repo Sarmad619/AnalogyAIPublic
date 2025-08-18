@@ -13,17 +13,17 @@ export function Navigation() {
 
   return (
     <header className="nav-sticky sticky top-0 z-50 w-full">
-      <div className="section-container py-0">
-        <div className="flex h-16 items-center justify-between">
+      <div className="max-w-4xl mx-auto px-4 py-3">
+        <div className="flex h-12 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <h1 className="text-xl font-bold text-gradient">
+            <h1 className="text-lg font-bold text-gradient">
               Analogy AI
             </h1>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center space-x-2">
             <Link 
               href="/"
               className={`nav-link ${isActive('/') ? 'active' : ''}`}
@@ -45,7 +45,7 @@ export function Navigation() {
             <Button
               variant="ghost"
               size="sm"
-              className="nav-link ml-4"
+              className="nav-link ml-2 text-sm px-3 py-1"
               onClick={() => window.location.href = "/api/logout"}
             >
               Logout
@@ -67,7 +67,7 @@ export function Navigation() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border py-4">
+          <div className="md:hidden border-t border-glass-border py-3 mt-3">
             <nav className="flex flex-col space-y-1">
               <Link 
                 href="/"

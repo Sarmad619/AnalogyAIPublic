@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,20 +42,22 @@ export function Profile() {
   const form = useForm<ProfileData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      interests: profile?.interests || "",
-      learningGoals: profile?.learningGoals || "",
-      preferredComplexity: profile?.preferredComplexity || "moderate",
+      interests: "",
+      learningGoals: "",
+      preferredComplexity: "moderate",
     },
   });
 
   // Update form when profile data loads
-  if (profile) {
-    form.reset({
-      interests: profile.interests || "",
-      learningGoals: profile.learningGoals || "",
-      preferredComplexity: profile.preferredComplexity || "moderate",
-    });
-  }
+  useEffect(() => {
+    if (profile && typeof profile === 'object') {
+      form.reset({
+        interests: (profile as any).interests || "",
+        learningGoals: (profile as any).learningGoals || "",
+        preferredComplexity: (profile as any).preferredComplexity || "moderate",
+      });
+    }
+  }, [profile, form]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: ProfileData) => {
@@ -120,24 +122,24 @@ export function Profile() {
                 <User className="text-primary-foreground" size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">{user?.firstName || 'User'}</h3>
-                <p className="text-muted-foreground">{user?.email}</p>
+                <h3 className="text-lg font-semibold text-white">{(user as any)?.firstName || 'User'}</h3>
+                <p className="text-muted-foreground">{(user as any)?.email}</p>
               </div>
             </div>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Member since:</span>
                 <span className="text-white">
-                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                  {(user as any)?.createdAt ? new Date((user as any).createdAt).toLocaleDateString() : 'N/A'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total analogies:</span>
-                <span className="text-white">{profile?.totalAnalogies || 0}</span>
+                <span className="text-white">{(profile as any)?.totalAnalogies || 0}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Favorites:</span>
-                <span className="text-white">{profile?.favoriteCount || 0}</span>
+                <span className="text-white">{(profile as any)?.favoriteCount || 0}</span>
               </div>
             </div>
           </div>

@@ -97,12 +97,13 @@ body {
 }
 
 .nav-link {
-  padding: 10px 16px;
-  border-radius: 10px;
+  padding: 6px 12px;
+  border-radius: 8px;
   color: var(--muted-foreground);
   text-decoration: none;
   transition: all 0.3s ease;
   font-weight: 500;
+  font-size: 0.875rem;
   position: relative;
   overflow: hidden;
 }
