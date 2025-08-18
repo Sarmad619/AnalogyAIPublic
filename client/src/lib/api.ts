@@ -74,4 +74,9 @@ export const api = {
     const response = await apiRequest("PUT", `/api/analogy/${analogyId}/favorite`, { isFavorite });
     return response.json();
   },
+
+  async submitFeedback(analogyId: string, helpful: boolean): Promise<{ message: string; success: boolean }> {
+    const response = await apiRequest("POST", `/api/analogy/${analogyId}/feedback`, { helpful });
+    return response.json();
+  },
 };

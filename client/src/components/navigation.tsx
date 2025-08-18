@@ -44,6 +44,14 @@ export function Navigation() {
             >
               <Menu size={20} />
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-300 hover:text-white hidden md:block"
+              onClick={() => window.location.href = "/api/logout"}
+            >
+              Logout
+            </Button>
             <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center cursor-pointer">
               <User className="text-white" size={16} />
             </div>
@@ -75,6 +83,14 @@ export function Navigation() {
               >
                 Profile
               </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-300 hover:text-white w-full justify-start px-3 py-2"
+                onClick={() => window.location.href = "/api/logout"}
+              >
+                Logout
+              </Button>
             </nav>
           </div>
         )}

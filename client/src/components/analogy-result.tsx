@@ -66,8 +66,35 @@ export function AnalogyResult({ result, onRegenerate }: AnalogyResultProps) {
     },
   });
 
+  // Feedback mutation for "Helpful" button
+  const feedbackMutation = useMutation({
+    mutationFn: async (helpful: boolean) => {
+      if (!result.id) {
+        throw new Error("Cannot submit feedback without analogy ID");
+      }
+      return api.submitFeedback(result.id, helpful);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Feedback Submitted",
+        description: data.message,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Feedback Failed",
+        description: error.message || "Failed to submit feedback.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleRegenerate = (feedbackType: string) => {
     regenerateMutation.mutate(feedbackType);
+  };
+
+  const handleFeedback = (helpful: boolean) => {
+    feedbackMutation.mutate(helpful);
   };
 
   const handleFavorite = () => {
@@ -141,8 +168,8 @@ export function AnalogyResult({ result, onRegenerate }: AnalogyResultProps) {
           <p className="text-sm text-gray-400 mb-3">Was this analogy helpful?</p>
           <div className="flex flex-wrap gap-3">
             <Button
-              onClick={() => handleRegenerate("helpful")}
-              disabled={regenerateMutation.isPending}
+              onClick={() => handleFeedback(true)}
+              disabled={feedbackMutation.isPending}
               variant="outline"
               size="sm"
               className="bg-green-500/20 text-green-300 border-green-400/30 hover:bg-green-500/30 transition-all"

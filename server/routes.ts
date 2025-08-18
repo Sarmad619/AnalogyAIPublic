@@ -8,19 +8,28 @@ import {
   type GenerateAnalogyRequest 
 } from "@shared/schema";
 import { generateAnalogy, regenerateAnalogy } from "./services/openai";
-
-// Simple session middleware for MVP - in production use proper auth
-const getCurrentUserId = (req: Request): string => {
-  // For MVP, always return demo user ID
-  return "demo-user";
-};
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
   
   // Generate analogy endpoint
-  app.post("/api/analogy", async (req: Request, res: Response) => {
+  app.post("/api/analogy", isAuthenticated, async (req: any, res: Response) => {
     try {
-      const userId = getCurrentUserId(req);
+      const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -72,10 +81,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Regenerate analogy endpoint
-  app.post("/api/analogy/regenerate", async (req: Request, res: Response) => {
+  // Analogy feedback endpoint (for "Helpful" button)
+  app.post("/api/analogy/:id/feedback", isAuthenticated, async (req: any, res: Response) => {
     try {
-      const userId = getCurrentUserId(req);
+      const userId = req.user.claims.sub;
+      const analogyId = req.params.id;
+      const { helpful } = req.body;
+      
+      // Verify the analogy belongs to the user
+      const analogy = await storage.getAnalogy(analogyId);
+      if (!analogy || analogy.userId !== userId) {
+        return res.status(404).json({ message: "Analogy not found" });
+      }
+
+      // For now, just return a success message
+      // In the future, we could store this feedback for analytics
+      res.json({ 
+        message: helpful ? "Thanks for your feedback! We're glad this analogy was helpful." : "Thanks for your feedback! We'll work on improving our analogies.",
+        success: true 
+      });
+
+    } catch (error) {
+      console.error("Error recording feedback:", error);
+      res.status(500).json({ message: "Failed to record feedback" });
+    }
+  });
+
+  // Regenerate analogy endpoint
+  app.post("/api/analogy/regenerate", isAuthenticated, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.claims.sub;
       const validatedData = regenerateAnalogySchema.parse(req.body);
       
       // Get original analogy
@@ -126,9 +161,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user history
-  app.get("/api/history", async (req: Request, res: Response) => {
+  app.get("/api/history", isAuthenticated, async (req: any, res: Response) => {
     try {
-      const userId = getCurrentUserId(req);
+      const userId = req.user.claims.sub;
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
       
@@ -153,9 +188,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user profile
-  app.get("/api/profile", async (req: Request, res: Response) => {
+  app.get("/api/profile", isAuthenticated, async (req: any, res: Response) => {
     try {
-      const userId = getCurrentUserId(req);
+      const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
       
       if (!user) {
@@ -165,7 +200,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         id: user.id,
         email: user.email,
-        displayName: user.displayName,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profileImageUrl: user.profileImageUrl,
         personalizationInterests: user.personalizationInterests,
         defaultKnowledgeLevel: user.defaultKnowledgeLevel,
         analogyStyle: user.analogyStyle,
@@ -179,9 +216,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update user profile
-  app.put("/api/profile", async (req: Request, res: Response) => {
+  app.put("/api/profile", isAuthenticated, async (req: any, res: Response) => {
     try {
-      const userId = getCurrentUserId(req);
+      const userId = req.user.claims.sub;
       const validatedData = updateProfileSchema.parse(req.body);
       
       const updatedUser = await storage.updateUser(userId, validatedData);
@@ -193,7 +230,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         id: updatedUser.id,
         email: updatedUser.email,
-        displayName: updatedUser.displayName,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        profileImageUrl: updatedUser.profileImageUrl,
         personalizationInterests: updatedUser.personalizationInterests,
         defaultKnowledgeLevel: updatedUser.defaultKnowledgeLevel,
         analogyStyle: updatedUser.analogyStyle,
@@ -209,9 +248,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Toggle favorite analogy
-  app.put("/api/analogy/:id/favorite", async (req: Request, res: Response) => {
+  app.put("/api/analogy/:id/favorite", isAuthenticated, async (req: any, res: Response) => {
     try {
-      const userId = getCurrentUserId(req);
+      const userId = req.user.claims.sub;
       const analogyId = req.params.id;
       const { isFavorite } = req.body;
       
