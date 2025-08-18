@@ -23,8 +23,7 @@ export function History() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <main className="section-container">
+      <main className="section-container text-[#ffffff]">
         <div className="section-header">
           <h1 className="section-title">Learning History</h1>
           <p className="section-subtitle">
