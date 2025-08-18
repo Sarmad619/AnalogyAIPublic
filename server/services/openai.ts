@@ -23,24 +23,36 @@ export async function generateAnalogy(request: GenerateAnalogyRequest): Promise<
     ? `Additional context: ${context}`
     : "";
 
-  const prompt = `You are an expert educator who creates personalized analogies to explain complex concepts. Your goal is to make difficult topics intuitive and memorable.
+  const prompt = `You are an expert educator who creates personalized analogies to explain complex concepts. Your goal is to make difficult topics intuitive and memorable with excellent formatting for learning.
 
 TOPIC TO EXPLAIN: ${topic}
 ${contextText}
 KNOWLEDGE LEVEL: ${knowledgeLevel}
 PERSONALIZATION: ${interestsText}
 
+CRITICAL FORMATTING REQUIREMENTS:
+- Use ### for subheadings to organize sections
+- Use **bold** for important concepts, key terms, and crucial points
+- Break content into multiple short paragraphs for better readability
+- Structure content with clear sections for easy scanning
+- Highlight key terminology with **bold** formatting
+- Make it visually scannable for optimal learning
+
 Create a clear, engaging analogy that:
 1. Uses familiar concepts the user can relate to
 2. Accurately represents the core principles of the topic
 3. Is appropriate for their knowledge level
 4. Incorporates their interests when possible
+5. Uses proper formatting with headers, subheadings, and bold text
 
 Provide your response in JSON format with:
-- "analogy": A clear, engaging analogy explanation
-- "example": A concrete, real-world example that demonstrates the concept
+- "analogy": A well-formatted analogy with ### subheadings, **bold** key terms, and multiple paragraphs
+- "example": A concrete, real-world example with ### subheadings, **bold** key terms, and multiple paragraphs
 
-Ensure the analogy is accurate, helpful, and memorable.`;
+Example format:
+"analogy": "### Main Concept\n\nThink of [concept] as **key analogy**.\n\n### How It Works\n\nThe **important process** works like this: first paragraph.\n\nSecond paragraph with **highlighted terms**.\n\n### Key Points\n\n**Point 1**: Explanation.\n\n**Point 2**: Another explanation."
+
+Ensure the analogy is accurate, helpful, memorable, and properly formatted.`;
 
   try {
     const response = await openai.chat.completions.create({

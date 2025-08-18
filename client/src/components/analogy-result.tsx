@@ -5,6 +5,22 @@ import { Button } from "@/components/ui/button";
 import { api, type AnalogyResponse } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
+// Function to format text content with markdown-like styling
+function formatTextContent(text: string): string {
+  return text
+    // Convert ### headers to styled headings with colored backgrounds
+    .replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold text-white bg-gradient-to-r from-primary/20 to-transparent px-3 py-2 rounded-lg mb-3 mt-4 border-l-4 border-primary">$1</h3>')
+    // Convert **bold** to styled bold text with highlight
+    .replace(/\*\*(.+?)\*\*/g, '<span class="highlight-text">$1</span>')
+    // Convert line breaks to paragraphs
+    .replace(/\n\n/g, '</p><p class="mb-3">')
+    // Wrap in paragraph tags
+    .replace(/^/, '<p class="mb-3">')
+    .replace(/$/, '</p>')
+    // Clean up empty paragraphs
+    .replace(/<p class="mb-3"><\/p>/g, '');
+}
+
 interface AnalogyResultProps {
   result: AnalogyResponse;
   onRegenerate?: (newResult: AnalogyResponse) => void;
@@ -154,9 +170,12 @@ export function AnalogyResult({ result, onRegenerate }: AnalogyResultProps) {
             <h4 className="text-xl font-bold text-cyan-300">The Analogy</h4>
           </div>
           <div className="bg-black/20 rounded-lg p-6 border border-cyan-400/20">
-            <p className="text-gray-100 text-lg leading-loose font-medium">
-              {result.analogy}
-            </p>
+            <div 
+              className="text-gray-100 text-lg leading-loose font-medium formatted-content"
+              dangerouslySetInnerHTML={{
+                __html: formatTextContent(result.analogy)
+              }}
+            />
           </div>
         </div>
 
@@ -169,9 +188,12 @@ export function AnalogyResult({ result, onRegenerate }: AnalogyResultProps) {
             <h4 className="text-xl font-bold text-purple-300">Real-World Example</h4>
           </div>
           <div className="bg-black/20 rounded-lg p-6 border border-purple-400/20">
-            <p className="text-gray-100 text-lg leading-loose font-medium">
-              {result.example}
-            </p>
+            <div 
+              className="text-gray-100 text-lg leading-loose font-medium formatted-content"
+              dangerouslySetInnerHTML={{
+                __html: formatTextContent(result.example)
+              }}
+            />
           </div>
         </div>
 
