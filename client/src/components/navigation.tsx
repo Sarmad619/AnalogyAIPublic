@@ -17,9 +17,7 @@ export function Navigation() {
         <div className="flex h-12 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <h1 className="text-lg font-bold text-gradient">
-              Analogy AI
-            </h1>
+            <h1 className="text-lg font-bold text-gradient">AnalogyAI</h1>
           </Link>
 
           {/* Desktop Navigation */}

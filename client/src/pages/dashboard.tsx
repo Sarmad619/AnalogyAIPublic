@@ -9,10 +9,9 @@ export function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
       <main className="section-container">
         <div className="section-header">
-          <h1 className="section-title">Dashboard</h1>
+          <h1 className="section-title text-[#ffba1b]">AnalogiAI</h1>
           <p className="section-subtitle">
             Generate personalized analogies to understand complex concepts
           </p>
