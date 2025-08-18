@@ -4,7 +4,7 @@ import { Navigation } from "@/components/navigation";
 import { AnalogyResult } from "@/components/analogy-result";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Heart, Calendar } from "lucide-react";
+import { Filter, Heart, Calendar } from "lucide-react";
 
 export function History() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,13 +34,12 @@ export function History() {
         {/* Controls */}
         <div className="card-minimal p-4 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground z-10 pointer-events-none" size={16} />
+            <div className="flex-1">
               <Input
                 placeholder="Search analogies..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-minimal pl-10 relative z-0"
+                className="input-minimal"
               />
             </div>
             <Button
