@@ -35,12 +35,12 @@ export function History() {
         <div className="card-minimal p-4 mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground z-10 pointer-events-none" size={16} />
               <Input
                 placeholder="Search analogies..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-minimal pl-10"
+                className="input-minimal pl-10 relative z-0"
               />
             </div>
             <Button
