@@ -106,14 +106,17 @@ export async function regenerateAnalogy(
 
   let feedbackInstruction = "";
   switch (feedback) {
+    case "too_simple":
     case "too-simple":
-      feedbackInstruction = "The previous analogy was too simple. Make this one more sophisticated and detailed.";
+      feedbackInstruction = "The previous analogy was too simple. Make this one more sophisticated and detailed with advanced concepts and terminology.";
       break;
+    case "too_advanced":
     case "too-complex":
-      feedbackInstruction = "The previous analogy was too complex. Make this one simpler and more accessible.";
+      feedbackInstruction = "The previous analogy was too advanced. Make this one simpler and more accessible for beginners.";
       break;
+    case "different_style":
     case "different-angle":
-      feedbackInstruction = "The user wants a different perspective. Use a completely different analogy approach.";
+      feedbackInstruction = "The user wants a different perspective. Use a completely different analogy approach and style.";
       break;
     default:
       feedbackInstruction = "Create a new analogy with a fresh perspective.";

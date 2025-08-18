@@ -3,10 +3,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Heart, ThumbsUp, Copy, Check } from "lucide-react";
+import { Heart, ThumbsUp, Copy, Check, RotateCcw, TrendingDown, TrendingUp } from "lucide-react";
 
 interface AnalogyResultProps {
   analogy: any;
+  onRegenerate?: (newAnalogy: any) => void;
 }
 
 function formatTextContent(text: string | undefined | null): string {
@@ -27,7 +28,7 @@ function formatTextContent(text: string | undefined | null): string {
     .replace(/<p class="mb-4"><\/p>/g, '');
 }
 
-export function AnalogyResult({ analogy }: AnalogyResultProps) {
+export function AnalogyResult({ analogy, onRegenerate }: AnalogyResultProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
@@ -56,6 +57,32 @@ export function AnalogyResult({ analogy }: AnalogyResultProps) {
       toast({
         title: "Error",
         description: "Failed to record feedback",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const regenerateMutation = useMutation({
+    mutationFn: async ({ feedback }: { feedback: string }) => {
+      return await apiRequest("/api/analogy/regenerate", "POST", {
+        previousAnalogyId: analogy.id,
+        feedback: feedback,
+      });
+    },
+    onSuccess: (newAnalogy) => {
+      if (onRegenerate) {
+        onRegenerate(newAnalogy);
+      }
+      queryClient.invalidateQueries({ queryKey: ['/api/history'] });
+      toast({
+        title: "Analogy regenerated",
+        description: "A new version has been created based on your feedback!",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to regenerate analogy. Please try again.",
         variant: "destructive",
       });
     },
@@ -153,11 +180,11 @@ export function AnalogyResult({ analogy }: AnalogyResultProps) {
       </div>
 
       {/* Feedback */}
-      <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
-        <p className="text-sm text-muted-foreground">
-          Was this analogy helpful?
-        </p>
-        <div className="flex items-center space-x-2">
+      <div className="pt-6 mt-6 border-t border-border space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Was this analogy helpful?
+          </p>
           <Button
             variant="ghost"
             size="sm"
@@ -168,6 +195,44 @@ export function AnalogyResult({ analogy }: AnalogyResultProps) {
             <ThumbsUp size={16} />
             <span>Helpful</span>
           </Button>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Need a different difficulty level?
+          </p>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => regenerateMutation.mutate({ feedback: 'too_advanced' })}
+              disabled={regenerateMutation.isPending}
+              className="text-muted-foreground hover:text-orange-400 flex items-center space-x-1"
+            >
+              <TrendingDown size={16} />
+              <span>Too Advanced</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => regenerateMutation.mutate({ feedback: 'too_simple' })}
+              disabled={regenerateMutation.isPending}
+              className="text-muted-foreground hover:text-blue-400 flex items-center space-x-1"
+            >
+              <TrendingUp size={16} />
+              <span>Too Simple</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => regenerateMutation.mutate({ feedback: 'different_style' })}
+              disabled={regenerateMutation.isPending}
+              className="text-muted-foreground hover:text-purple-400 flex items-center space-x-1"
+            >
+              <RotateCcw size={16} />
+              <span>Different Style</span>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

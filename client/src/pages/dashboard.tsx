@@ -27,7 +27,10 @@ export function Dashboard() {
           {/* Result Section */}
           <div>
             {currentAnalogy ? (
-              <AnalogyResult analogy={currentAnalogy} />
+              <AnalogyResult 
+                analogy={currentAnalogy} 
+                onRegenerate={setCurrentAnalogy}
+              />
             ) : (
               <div className="card-minimal p-8 text-center">
                 <div className="text-muted-foreground text-4xl mb-4">💭</div>
