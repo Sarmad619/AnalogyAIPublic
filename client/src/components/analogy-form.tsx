@@ -91,17 +91,21 @@ export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
             name="topic"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center text-sm font-medium text-gray-200 mb-3">
-                  <Lightbulb className="mr-2 text-yellow-400" size={16} />
+                <FormLabel className="flex items-center text-base font-semibold text-gray-200 mb-3">
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center mr-2">
+                    <Lightbulb className="text-primary-foreground" size={14} />
+                  </div>
                   What concept would you like to understand?
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="e.g., Quantum physics, Machine learning, Economic inflation..."
-                    className="w-full px-4 py-3 glassmorphism rounded-lg border-glass-border focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all text-white placeholder-gray-400"
-                    disabled={isLoading}
-                  />
+                  <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-1 focus-within:border-primary transition-all">
+                    <Input
+                      {...field}
+                      placeholder="e.g., Quantum physics, Machine learning, Economic inflation..."
+                      className="bg-transparent border-none text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none p-4 w-full"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -114,18 +118,22 @@ export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
             name="context"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center text-sm font-medium text-gray-200 mb-3">
-                  <div className="w-4 h-4 mr-2 text-green-400">🎯</div>
+                <FormLabel className="flex items-center text-base font-semibold text-gray-200 mb-3">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-2">
+                    <GraduationCap className="text-white" size={14} />
+                  </div>
                   Additional context (optional)
                 </FormLabel>
                 <FormControl>
-                  <Textarea
-                    {...field}
-                    placeholder="Provide any specific context about how you'll use this knowledge..."
-                    rows={3}
-                    className="w-full px-4 py-3 glassmorphism rounded-lg border-glass-border focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all text-white placeholder-gray-400 resize-none"
-                    disabled={isLoading}
-                  />
+                  <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-1 focus-within:border-green-500 transition-all">
+                    <Textarea
+                      {...field}
+                      placeholder="Provide any specific context about how you'll use this knowledge..."
+                      rows={3}
+                      className="bg-transparent border-none text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none p-4 resize-none w-full"
+                      disabled={isLoading}
+                    />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -135,17 +143,21 @@ export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
           {/* Personalization Section */}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="flex items-center text-sm font-medium text-gray-200 mb-3">
-                <Heart className="mr-2 text-pink-400" size={16} />
+              <label className="flex items-center text-base font-semibold text-gray-200 mb-3">
+                <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center mr-2">
+                  <Heart className="text-white" size={14} />
+                </div>
                 Your interests
               </label>
-              <Input
-                value={interestsInput}
-                onChange={(e) => setInterestsInput(e.target.value)}
-                placeholder="e.g., cooking, sports, music, movies..."
-                className="w-full px-4 py-3 glassmorphism rounded-lg border-glass-border focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all text-white placeholder-gray-400"
-                disabled={isLoading}
-              />
+              <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-1 focus-within:border-pink-500 transition-all">
+                <Input
+                  value={interestsInput}
+                  onChange={(e) => setInterestsInput(e.target.value)}
+                  placeholder="e.g., cooking, sports, music, movies..."
+                  className="bg-transparent border-none text-white text-lg placeholder-gray-400 focus:ring-0 focus:outline-none p-4 w-full"
+                  disabled={isLoading}
+                />
+              </div>
             </div>
             
             <FormField
@@ -153,15 +165,19 @@ export function AnalogyForm({ onSuccess, isLoading }: AnalogyFormProps) {
               name="personalization.knowledgeLevel"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center text-sm font-medium text-gray-200 mb-3">
-                    <GraduationCap className="mr-2 text-blue-400" size={16} />
+                  <FormLabel className="flex items-center text-base font-semibold text-gray-200 mb-3">
+                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                      <GraduationCap className="text-white" size={14} />
+                    </div>
                     Knowledge level
                   </FormLabel>
                   <Select value={field.value} onValueChange={field.onChange} disabled={isLoading}>
                     <FormControl>
-                      <SelectTrigger className="w-full px-4 py-3 glassmorphism rounded-lg border-glass-border focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 focus:outline-none transition-all text-white">
-                        <SelectValue placeholder="Select your knowledge level" />
-                      </SelectTrigger>
+                      <div className="glassmorphism-strong border-2 border-glass-border rounded-xl p-1 focus-within:border-blue-500 transition-all">
+                        <SelectTrigger className="bg-transparent border-none text-white text-lg focus:ring-0 focus:outline-none p-4 w-full">
+                          <SelectValue placeholder="Select your knowledge level" />
+                        </SelectTrigger>
+                      </div>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="beginner">Beginner</SelectItem>

@@ -1,19 +1,55 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { History, Filter, ExternalLink, Star, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
 import { api } from "@/lib/api";
 import { LoadingState } from "@/components/loading-state";
 
 export default function HistoryPage() {
+  const { toast } = useToast();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const { data: historyData, isLoading, error } = useQuery({
     queryKey: ["/api/history", 50, 0],
     refetchOnWindowFocus: false,
+    enabled: isAuthenticated, // Only run query when authenticated
   });
+
+  // Handle authentication errors
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+  }, [isAuthenticated, authLoading, toast]);
+
+  // Handle API errors
+  useEffect(() => {
+    if (error && isUnauthorizedError(error as Error)) {
+      toast({
+        title: "Unauthorized",
+        description: "You are logged out. Logging in again...",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+  }, [error, toast]);
 
   const filteredAnalogies = (historyData as any)?.analogies?.filter((analogy: any) => {
     const matchesSearch = analogy.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||

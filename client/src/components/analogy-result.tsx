@@ -146,21 +146,33 @@ export function AnalogyResult({ result, onRegenerate }: AnalogyResultProps) {
 
       <div className="space-y-6">
         {/* Analogy Content */}
-        <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-400/20 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-cyan-300 mb-3 flex items-center">
-            <Quote className="mr-2" size={18} />
-            The Analogy
-          </h4>
-          <p className="text-gray-200 leading-relaxed">{result.analogy}</p>
+        <div className="glassmorphism-strong border-2 border-cyan-400/30 rounded-xl p-8 shadow-lg">
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center mr-3">
+              <Quote className="text-white" size={20} />
+            </div>
+            <h4 className="text-xl font-bold text-cyan-300">The Analogy</h4>
+          </div>
+          <div className="bg-black/20 rounded-lg p-6 border border-cyan-400/20">
+            <p className="text-gray-100 text-lg leading-loose font-medium">
+              {result.analogy}
+            </p>
+          </div>
         </div>
 
         {/* Practical Example */}
-        <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-400/20 rounded-lg p-6">
-          <h4 className="text-lg font-medium text-purple-300 mb-3 flex items-center">
-            <Lightbulb className="mr-2" size={18} />
-            Real-World Example
-          </h4>
-          <p className="text-gray-200 leading-relaxed">{result.example}</p>
+        <div className="glassmorphism-strong border-2 border-purple-400/30 rounded-xl p-8 shadow-lg">
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mr-3">
+              <Lightbulb className="text-white" size={20} />
+            </div>
+            <h4 className="text-xl font-bold text-purple-300">Real-World Example</h4>
+          </div>
+          <div className="bg-black/20 rounded-lg p-6 border border-purple-400/20">
+            <p className="text-gray-100 text-lg leading-loose font-medium">
+              {result.example}
+            </p>
+          </div>
         </div>
 
         {/* Feedback Section */}
