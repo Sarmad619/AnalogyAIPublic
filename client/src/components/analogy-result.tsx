@@ -9,7 +9,11 @@ interface AnalogyResultProps {
   analogy: any;
 }
 
-function formatTextContent(text: string): string {
+function formatTextContent(text: string | undefined | null): string {
+  if (!text || typeof text !== 'string') {
+    return '<p class="mb-4 text-muted-foreground">No content available</p>';
+  }
+  
   return text
     // Convert ### headers to styled headings
     .replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold text-primary mb-4 mt-6 first:mt-0">$1</h3>')
@@ -27,6 +31,15 @@ export function AnalogyResult({ analogy }: AnalogyResultProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
+
+  // Handle cases where analogy might be null or missing properties
+  if (!analogy) {
+    return (
+      <div className="card-minimal p-6 text-center">
+        <p className="text-muted-foreground">No analogy data available</p>
+      </div>
+    );
+  }
 
   const feedbackMutation = useMutation({
     mutationFn: async ({ feedback }: { feedback: 'helpful' | 'not_helpful' }) => {
@@ -70,7 +83,8 @@ export function AnalogyResult({ analogy }: AnalogyResultProps) {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(analogy.content);
+      const contentToCopy = `${analogy.analogy || ''}\n\n${analogy.example || ''}`;
+      await navigator.clipboard.writeText(contentToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       toast({
@@ -91,7 +105,7 @@ export function AnalogyResult({ analogy }: AnalogyResultProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-xl font-bold text-white">{analogy.concept}</h3>
+          <h3 className="text-xl font-bold text-white">{analogy.topic || 'Analogy'}</h3>
           <p className="text-sm text-muted-foreground mt-1">
             Generated on {new Date(analogy.createdAt).toLocaleDateString()}
           </p>
@@ -122,10 +136,21 @@ export function AnalogyResult({ analogy }: AnalogyResultProps) {
       </div>
 
       {/* Content */}
-      <div 
-        className="formatted-content text-foreground leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: formatTextContent(analogy.content) }}
-      />
+      <div className="space-y-6">
+        {/* Analogy Section */}
+        <div className="formatted-content text-foreground leading-relaxed">
+          <h4 className="text-lg font-semibold text-primary mb-3">Analogy</h4>
+          <div dangerouslySetInnerHTML={{ __html: formatTextContent(analogy.analogy) }} />
+        </div>
+        
+        {/* Example Section */}
+        {analogy.example && (
+          <div className="formatted-content text-foreground leading-relaxed">
+            <h4 className="text-lg font-semibold text-primary mb-3">Example</h4>
+            <div dangerouslySetInnerHTML={{ __html: formatTextContent(analogy.example) }} />
+          </div>
+        )}
+      </div>
 
       {/* Feedback */}
       <div className="flex items-center justify-between pt-6 mt-6 border-t border-border">
