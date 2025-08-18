@@ -34,15 +34,12 @@ function Router() {
   }
 
   return (
-    <>
-      <Navigation />
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/history" component={History} />
-        <Route path="/profile" component={Profile} />
-        <Route component={NotFound} />
-      </Switch>
-    </>
+    <Switch>
+      <Route path="/" component={Dashboard} />
+      <Route path="/history" component={History} />
+      <Route path="/profile" component={Profile} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 

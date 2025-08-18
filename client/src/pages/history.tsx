@@ -14,11 +14,11 @@ export function History() {
     queryKey: ['/api/history'],
   });
 
-  const filteredAnalogies = (analogies as any[]).filter((analogy: any) => {
+  const filteredAnalogies = Array.isArray(analogies) ? analogies.filter((analogy: any) => {
     const matchesSearch = analogy.concept.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFavorite = !filterFavorites || analogy.isFavorite;
     return matchesSearch && matchesFavorite;
-  });
+  }) : [];
 
   return (
     <div className="min-h-screen bg-background">
