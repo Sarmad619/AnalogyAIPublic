@@ -248,19 +248,29 @@ export function Profile() {
                               key={option.value}
                               type="button"
                               onClick={() => field.onChange(option.value)}
-                              className={`p-3 rounded-lg border text-left transition-colors ${
+                              className={`p-3 rounded-lg border text-left transition-all duration-200 ${
                                 field.value === option.value
-                                  ? 'border-primary bg-primary/20 text-primary'
-                                  : 'border-border bg-card hover:bg-card-hover text-foreground'
+                                  ? 'border-primary bg-primary/20 text-primary ring-2 ring-primary/50 shadow-lg transform scale-105'
+                                  : 'border-border bg-card hover:bg-card-hover text-foreground hover:border-primary/30 hover:scale-102'
                               }`}
                             >
-                              <div className="font-medium">{option.label}</div>
+                              <div className="font-medium flex items-center gap-2">
+                                {field.value === option.value && (
+                                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                                )}
+                                {option.label}
+                              </div>
                               <div className="text-sm opacity-70">{option.desc}</div>
                             </button>
                           ))}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           This will be your default complexity level for all new analogies
+                          {field.value && (
+                            <span className="text-primary font-medium ml-2">
+                              (Currently selected: {field.value.charAt(0).toUpperCase() + field.value.slice(1)})
+                            </span>
+                          )}
                         </p>
                         <FormMessage />
                       </FormItem>
@@ -285,19 +295,29 @@ export function Profile() {
                               key={option.value}
                               type="button"
                               onClick={() => field.onChange(option.value)}
-                              className={`p-3 rounded-lg border text-left transition-colors ${
+                              className={`p-3 rounded-lg border text-left transition-all duration-200 ${
                                 field.value === option.value
-                                  ? 'border-primary bg-primary/20 text-primary'
-                                  : 'border-border bg-card hover:bg-card-hover text-foreground'
+                                  ? 'border-primary bg-primary/20 text-primary ring-2 ring-primary/50 shadow-lg transform scale-105'
+                                  : 'border-border bg-card hover:bg-card-hover text-foreground hover:border-primary/30 hover:scale-102'
                               }`}
                             >
-                              <div className="font-medium">{option.label}</div>
+                              <div className="font-medium flex items-center gap-2">
+                                {field.value === option.value && (
+                                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                                )}
+                                {option.label}
+                              </div>
                               <div className="text-sm opacity-70">{option.desc}</div>
                             </button>
                           ))}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           This will be your default style for all analogies generated
+                          {field.value && (
+                            <span className="text-primary font-medium ml-2">
+                              (Currently selected: {field.value.charAt(0).toUpperCase() + field.value.slice(1)})
+                            </span>
+                          )}
                         </p>
                         <FormMessage />
                       </FormItem>
