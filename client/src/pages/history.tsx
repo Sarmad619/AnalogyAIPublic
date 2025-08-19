@@ -172,7 +172,8 @@ export function History() {
         description: "The analogy has been permanently removed from your history",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Delete error:", error);
       toast({
         title: "Error",
         description: "Failed to delete analogy. Please try again.",
