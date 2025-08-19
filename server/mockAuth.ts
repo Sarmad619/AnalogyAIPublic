@@ -1,17 +1,12 @@
-import type { RequestHandler, Request, Response, NextFunction } from "express";
+import type { RequestHandler } from "express";
 import { storage } from "./storage";
 
-// Augment the Express Request type to include 'user'
+// Augment the Express Request type for our simplified user object
 declare global {
   namespace Express {
     interface User {
-      claims: {
-        sub: string;
-        email?: string;
-        first_name?: string;
-        last_name?: string;
-        profile_image_url?: string;
-      };
+      id: string;
+      email: string;
     }
     interface Request {
       user?: User;
@@ -21,13 +16,8 @@ declare global {
 
 // This is our mock user for local development
 const mockUser = {
-  claims: {
-    sub: "local-dev-user",
-    email: "dev@analogy.ai",
-    first_name: "Local",
-    last_name: "Developer",
-    profile_image_url: ""
-  }
+  id: "local-dev-user",
+  email: "dev@analogy.ai",
 };
 
 // This middleware function attaches the mock user to every incoming request
@@ -36,14 +26,13 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   // Ensure the mock user exists in the database
   try {
-    const user = await storage.getUser(mockUser.claims.sub);
+    const user = await storage.getUser(mockUser.id);
     if (!user) {
       await storage.upsertUser({
-        id: mockUser.claims.sub,
-        email: mockUser.claims.email,
-        firstName: mockUser.claims.first_name,
-        lastName: mockUser.claims.last_name,
-        profileImageUrl: mockUser.claims.profile_image_url,
+        id: mockUser.id,
+        email: mockUser.email,
+        firstName: "Local",
+        lastName: "Developer",
       });
     }
     next();
@@ -55,6 +44,5 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
 // We don't need a complex setup for the main auth function in local dev
 export async function setupAuth(app: import("express").Express) {
-  // No session or passport setup needed for mock auth
   console.log("Using mock authentication for local development.");
 }
