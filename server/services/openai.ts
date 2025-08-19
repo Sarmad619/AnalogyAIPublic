@@ -69,7 +69,7 @@ Ensure the analogy is accurate, helpful, memorable, and properly formatted.`;
       ],
       response_format: { type: "json_object" },
       temperature: 0.8,
-      max_tokens: 1000,
+      max_tokens: 1500,
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
@@ -122,7 +122,7 @@ export async function regenerateAnalogy(
       feedbackInstruction = "Create a new analogy with a fresh perspective.";
   }
 
-  const prompt = `You are an expert educator who creates personalized analogies to explain complex concepts. 
+  const prompt = `You are an expert educator who creates personalized analogies to explain complex concepts. Your goal is to make difficult topics intuitive and memorable with excellent formatting for learning.
 
 TOPIC TO EXPLAIN: ${topic}
 ${contextText}
@@ -130,17 +130,29 @@ KNOWLEDGE LEVEL: ${knowledgeLevel}
 PERSONALIZATION: ${interestsText}
 FEEDBACK: ${feedbackInstruction}
 
+CRITICAL FORMATTING REQUIREMENTS:
+- Use ### for subheadings to organize sections
+- Use **bold** for important concepts, key terms, and crucial points
+- Break content into multiple short paragraphs for better readability
+- Structure content with clear sections for easy scanning
+- Highlight key terminology with **bold** formatting
+- Make it visually scannable for optimal learning
+
 Create a NEW analogy that:
 1. Addresses the feedback provided
 2. Uses different examples than before
 3. Maintains accuracy while being engaging
 4. Is appropriate for their knowledge level
+5. Uses proper formatting with headers, subheadings, and bold text
 
 Provide your response in JSON format with:
-- "analogy": A clear, engaging analogy explanation
-- "example": A concrete, real-world example that demonstrates the concept
+- "analogy": A well-formatted analogy with ### subheadings, **bold** key terms, and multiple paragraphs
+- "example": A concrete, real-world example with ### subheadings, **bold** key terms, and multiple paragraphs
 
-Make sure this analogy is distinctly different from any previous attempts.`;
+Example format:
+"analogy": "### Main Concept\n\nThink of [concept] as **key analogy**.\n\n### How It Works\n\nThe **important process** works like this: first paragraph.\n\nSecond paragraph with **highlighted terms**.\n\n### Key Points\n\n**Point 1**: Explanation.\n\n**Point 2**: Another explanation."
+
+Make sure this analogy is distinctly different from any previous attempts and properly formatted.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -157,7 +169,7 @@ Make sure this analogy is distinctly different from any previous attempts.`;
       ],
       response_format: { type: "json_object" },
       temperature: 0.9,
-      max_tokens: 1000,
+      max_tokens: 1500,
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
