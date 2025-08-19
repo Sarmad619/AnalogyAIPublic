@@ -18,6 +18,24 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Filter, Heart, Calendar, ChevronRight, Star, Trash2 } from "lucide-react";
 
+function formatTextContent(text: string | undefined | null): string {
+  if (!text || typeof text !== 'string') {
+    return '<p class="mb-4 text-muted-foreground">No content available</p>';
+  }
+  
+  return text
+    // Convert ### headers to styled headings
+    .replace(/^### (.+)$/gm, '<h3 class="text-lg font-bold text-primary mb-4 mt-6 first:mt-0">$1</h3>')
+    // Convert **bold** to styled bold text with highlight
+    .replace(/\*\*(.+?)\*\*/g, '<span class="highlight-text">$1</span>')
+    // Convert line breaks to paragraphs
+    .replace(/\n\n/g, '</p><p class="mb-4">')
+    // Wrap in paragraph tags
+    .replace(/^(.+)$/, '<p class="mb-4">$1</p>')
+    // Clean up empty paragraphs
+    .replace(/<p class="mb-4"><\/p>/g, '');
+}
+
 // Compact history list item component
 function HistoryListItem({ analogy, onToggleFavorite, onDelete, isToggling, isDeleting }: {
   analogy: any;
@@ -109,17 +127,23 @@ function HistoryListItem({ analogy, onToggleFavorite, onDelete, isToggling, isDe
         <div className="mt-4 pt-4 border-t border-border space-y-4">
           <div>
             <h4 className="text-sm font-semibold text-primary mb-2">Analogy</h4>
-            <p className="text-foreground text-sm leading-relaxed">
-              {analogy.analogy}
-            </p>
+            <div 
+              className="text-foreground text-sm leading-relaxed formatted-content"
+              dangerouslySetInnerHTML={{ 
+                __html: formatTextContent(analogy.analogy) 
+              }} 
+            />
           </div>
           
           {analogy.example && (
             <div>
               <h4 className="text-sm font-semibold text-primary mb-2">Example</h4>
-              <p className="text-foreground text-sm leading-relaxed">
-                {analogy.example}
-              </p>
+              <div 
+                className="text-foreground text-sm leading-relaxed formatted-content"
+                dangerouslySetInnerHTML={{ 
+                  __html: formatTextContent(analogy.example) 
+                }} 
+              />
             </div>
           )}
         </div>
