@@ -25,7 +25,7 @@ export interface IStorage {
   createAnalogy(analogy: InsertAnalogy): Promise<Analogy>;
   getUserAnalogies(userId: string, limit?: number, offset?: number): Promise<Analogy[]>;
   updateAnalogy(id: string, updates: Partial<Analogy>): Promise<Analogy | undefined>;
-  deleteAnalogy(id: string): Promise<boolean>;
+  deleteAnalogy(userId: string, id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -100,8 +100,9 @@ export class DatabaseStorage implements IStorage {
     return analogy;
   }
 
-  async deleteAnalogy(id: string): Promise<boolean> {
-    const result = await db.delete(analogies).where(eq(analogies.id, id));
+  async deleteAnalogy(userId: string, id: string): Promise<boolean> {
+    const result = await db.delete(analogies)
+      .where(and(eq(analogies.id, id), eq(analogies.userId, userId)));
     return (result.rowCount || 0) > 0;
   }
 }

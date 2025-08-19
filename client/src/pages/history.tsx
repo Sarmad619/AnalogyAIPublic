@@ -5,13 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Filter, Heart, Calendar, ChevronRight, Star } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Filter, Heart, Calendar, ChevronRight, Star, Trash2 } from "lucide-react";
 
 // Compact history list item component
-function HistoryListItem({ analogy, onToggleFavorite, isToggling }: {
+function HistoryListItem({ analogy, onToggleFavorite, onDelete, isToggling, isDeleting }: {
   analogy: any;
   onToggleFavorite: (id: string) => void;
+  onDelete: (id: string) => void;
   isToggling: boolean;
+  isDeleting: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -44,19 +57,52 @@ function HistoryListItem({ analogy, onToggleFavorite, isToggling }: {
             />
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onToggleFavorite(analogy.id)}
-          disabled={isToggling}
-          className={`ml-4 ${
-            analogy.isFavorite 
-              ? 'text-primary hover:text-primary/80' 
-              : 'text-muted-foreground hover:text-primary'
-          }`}
-        >
-          <Heart size={16} fill={analogy.isFavorite ? 'currentColor' : 'none'} />
-        </Button>
+        <div className="flex items-center gap-2 ml-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onToggleFavorite(analogy.id)}
+            disabled={isToggling}
+            className={`${
+              analogy.isFavorite 
+                ? 'text-primary hover:text-primary/80' 
+                : 'text-muted-foreground hover:text-primary'
+            }`}
+          >
+            <Heart size={16} fill={analogy.isFavorite ? 'currentColor' : 'none'} />
+          </Button>
+          
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={isDeleting}
+                className="text-muted-foreground hover:text-red-400"
+              >
+                <Trash2 size={16} />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Analogy</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this analogy about "{analogy.topic}"? 
+                  This action cannot be undone and the analogy will be permanently removed from your history.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(analogy.id)}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       {expanded && (
@@ -110,6 +156,26 @@ export function History() {
       toast({
         title: "Error",
         description: "Failed to update favorite status",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteAnalogy = useMutation({
+    mutationFn: async (analogyId: string) => {
+      return await apiRequest(`/api/analogy/${analogyId}`, "DELETE");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/history'] });
+      toast({
+        title: "Analogy deleted",
+        description: "The analogy has been permanently removed from your history",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete analogy. Please try again.",
         variant: "destructive",
       });
     },
@@ -172,7 +238,9 @@ export function History() {
                 key={analogy.id} 
                 analogy={analogy} 
                 onToggleFavorite={(id: string) => toggleFavorite.mutate(id)}
+                onDelete={(id: string) => deleteAnalogy.mutate(id)}
                 isToggling={toggleFavorite.isPending}
+                isDeleting={deleteAnalogy.isPending}
               />
             ))}
           </div>

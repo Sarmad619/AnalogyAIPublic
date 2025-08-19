@@ -273,6 +273,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete analogy
+  app.delete("/api/analogy/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+
+      const success = await storage.deleteAnalogy(userId, id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Analogy not found or not authorized to delete" });
+      }
+
+      res.json({ message: "Analogy deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting analogy:", error);
+      res.status(500).json({ message: "Failed to delete analogy" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
