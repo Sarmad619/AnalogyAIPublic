@@ -90,13 +90,19 @@ export function AnalogyResult({ analogy, onRegenerate }: AnalogyResultProps) {
 
   const favoriteMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest(`/api/analogy/${analogy.id}/favorite`, "POST");
+      return await apiRequest(`/api/analogy/${analogy.id}/favorite`, "PUT", {
+        isFavorite: !analogy.isFavorite
+      });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update the local analogy object
+      if (onRegenerate) {
+        onRegenerate({ ...analogy, isFavorite: data.isFavorite });
+      }
       queryClient.invalidateQueries({ queryKey: ['/api/history'] });
       toast({
-        title: analogy.isFavorite ? "Removed from favorites" : "Added to favorites",
-        description: analogy.isFavorite ? "Analogy removed from your favorites" : "Analogy saved to your favorites",
+        title: data.isFavorite ? "Added to favorites" : "Removed from favorites",
+        description: data.isFavorite ? "Analogy saved to your favorites" : "Analogy removed from your favorites",
       });
     },
     onError: () => {

@@ -165,20 +165,65 @@ export function Profile() {
                         <FormLabel className="text-base font-medium text-white">
                           Your Interests
                         </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            value={field.value?.join(', ') || ''}
-                            onChange={(e) => {
-                              const interests = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-                              field.onChange(interests);
-                            }}
-                            placeholder="e.g., cooking, sports, technology, music, travel..."
-                            rows={3}
-                            className="input-minimal resize-none"
-                          />
-                        </FormControl>
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap gap-2">
+                            {field.value?.map((interest, index) => (
+                              <span
+                                key={index}
+                                className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm flex items-center gap-2"
+                              >
+                                {interest}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newInterests = [...(field.value || [])];
+                                    newInterests.splice(index, 1);
+                                    field.onChange(newInterests);
+                                  }}
+                                  className="hover:text-primary/70"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Add an interest..."
+                              className="input-minimal flex-1"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const input = e.target as HTMLInputElement;
+                                  const newInterest = input.value.trim();
+                                  if (newInterest && !field.value?.includes(newInterest)) {
+                                    field.onChange([...(field.value || []), newInterest]);
+                                    input.value = '';
+                                  }
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
+                                const newInterest = input.value.trim();
+                                if (newInterest && !field.value?.includes(newInterest)) {
+                                  field.onChange([...(field.value || []), newInterest]);
+                                  input.value = '';
+                                }
+                              }}
+                            >
+                              Add
+                            </Button>
+                          </div>
+                        </div>
                         <p className="text-sm text-muted-foreground">
-                          Help us create analogies using topics you're familiar with (comma-separated)
+                          Add interests that will be auto-populated in your Dashboard preferences. 
+                          These will be automatically loaded when generating analogies.
                         </p>
                         <FormMessage />
                       </FormItem>
@@ -214,6 +259,9 @@ export function Profile() {
                             </button>
                           ))}
                         </div>
+                        <p className="text-sm text-muted-foreground">
+                          This will be your default complexity level for all new analogies
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -248,6 +296,9 @@ export function Profile() {
                             </button>
                           ))}
                         </div>
+                        <p className="text-sm text-muted-foreground">
+                          This will be your default style for all analogies generated
+                        </p>
                         <FormMessage />
                       </FormItem>
                     )}

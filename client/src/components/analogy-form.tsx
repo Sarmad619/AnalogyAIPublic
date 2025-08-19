@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,7 @@ const formSchema = z.object({
   context: z.string().optional(),
   personalization: z.object({
     knowledgeLevel: z.enum(["beginner", "intermediate", "advanced"]),
+    analogyStyle: z.enum(["conversational", "technical", "creative"]).optional(),
   }),
 });
 
@@ -44,6 +45,11 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
   const [interestsInput, setInterestsInput] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
 
+  // Fetch user profile to auto-populate preferences
+  const { data: profile } = useQuery({
+    queryKey: ['/api/profile'],
+  });
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,6 +60,28 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
       },
     },
   });
+
+  // Auto-populate form with user preferences
+  useEffect(() => {
+    if (profile) {
+      const userProfile = profile as any;
+      
+      // Set default knowledge level from profile
+      if (userProfile.defaultKnowledgeLevel) {
+        form.setValue('personalization.knowledgeLevel', userProfile.defaultKnowledgeLevel);
+      }
+      
+      // Set default analogy style from profile
+      if (userProfile.analogyStyle) {
+        form.setValue('personalization.analogyStyle', userProfile.analogyStyle);
+      }
+      
+      // Set interests from profile
+      if (userProfile.personalizationInterests?.length > 0) {
+        setInterests(userProfile.personalizationInterests);
+      }
+    }
+  }, [profile, form]);
 
   const generateMutation = useMutation({
     mutationFn: async (data: FormData) => {
