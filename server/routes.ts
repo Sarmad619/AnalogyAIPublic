@@ -8,7 +8,7 @@ import {
   type GenerateAnalogyRequest 
 } from "@shared/schema";
 import { generateAnalogy, regenerateAnalogy } from "./services/openai";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./mockAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
