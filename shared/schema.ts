@@ -68,7 +68,6 @@ export const regenerateAnalogySchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  displayName: z.string().optional(),
   personalizationInterests: z.array(z.string()).optional(),
   defaultKnowledgeLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
   analogyStyle: z.enum(["conversational", "technical", "creative"]).optional(),
@@ -78,6 +77,7 @@ export const updateProfileSchema = z.object({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type UpdateProfile = z.infer<typeof updateProfileSchema>;
 export type InsertAnalogy = z.infer<typeof insertAnalogySchema>;
 export type Analogy = typeof analogies.$inferSelect;
 export type GenerateAnalogyRequest = z.infer<typeof generateAnalogySchema>;

@@ -20,9 +20,10 @@ import { apiRequest } from "@/lib/queryClient";
 import { User, Settings, Save } from "lucide-react";
 
 const profileSchema = z.object({
-  interests: z.string().optional(),
-  learningGoals: z.string().optional(),
-  preferredComplexity: z.enum(["simple", "moderate", "detailed"]).optional(),
+  personalizationInterests: z.array(z.string()).optional(),
+  defaultKnowledgeLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  analogyStyle: z.enum(["conversational", "technical", "creative"]).optional(),
+  saveHistory: z.boolean().optional(),
 });
 
 type ProfileData = z.infer<typeof profileSchema>;
@@ -42,9 +43,10 @@ export function Profile() {
   const form = useForm<ProfileData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      interests: "",
-      learningGoals: "",
-      preferredComplexity: "moderate",
+      personalizationInterests: [],
+      defaultKnowledgeLevel: "intermediate",
+      analogyStyle: "conversational",
+      saveHistory: true,
     },
   });
 
@@ -52,9 +54,10 @@ export function Profile() {
   useEffect(() => {
     if (profile && typeof profile === 'object') {
       form.reset({
-        interests: (profile as any).interests || "",
-        learningGoals: (profile as any).learningGoals || "",
-        preferredComplexity: (profile as any).preferredComplexity || "moderate",
+        personalizationInterests: (profile as any).personalizationInterests || [],
+        defaultKnowledgeLevel: (profile as any).defaultKnowledgeLevel || "intermediate",
+        analogyStyle: (profile as any).analogyStyle || "conversational",
+        saveHistory: (profile as any).saveHistory !== undefined ? (profile as any).saveHistory : true,
       });
     }
   }, [profile, form]);
@@ -134,12 +137,12 @@ export function Profile() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Total analogies:</span>
-                <span className="text-white">{(profile as any)?.totalAnalogies || 0}</span>
+                <span className="text-muted-foreground">Knowledge Level:</span>
+                <span className="text-white capitalize">{(profile as any)?.defaultKnowledgeLevel || 'intermediate'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Favorites:</span>
-                <span className="text-white">{(profile as any)?.favoriteCount || 0}</span>
+                <span className="text-muted-foreground">Analogy Style:</span>
+                <span className="text-white capitalize">{(profile as any)?.analogyStyle || 'conversational'}</span>
               </div>
             </div>
           </div>
@@ -156,7 +159,7 @@ export function Profile() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <FormField
                     control={form.control}
-                    name="interests"
+                    name="personalizationInterests"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-medium text-white">
@@ -164,14 +167,18 @@ export function Profile() {
                         </FormLabel>
                         <FormControl>
                           <Textarea
-                            {...field}
+                            value={field.value?.join(', ') || ''}
+                            onChange={(e) => {
+                              const interests = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                              field.onChange(interests);
+                            }}
                             placeholder="e.g., cooking, sports, technology, music, travel..."
                             rows={3}
                             className="input-minimal resize-none"
                           />
                         </FormControl>
                         <p className="text-sm text-muted-foreground">
-                          Help us create analogies using topics you're familiar with
+                          Help us create analogies using topics you're familiar with (comma-separated)
                         </p>
                         <FormMessage />
                       </FormItem>
@@ -180,46 +187,56 @@ export function Profile() {
 
                   <FormField
                     control={form.control}
-                    name="learningGoals"
+                    name="defaultKnowledgeLevel"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-base font-medium text-white">
-                          Learning Goals
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="What do you hope to achieve with analogies? What subjects interest you most?"
-                            rows={3}
-                            className="input-minimal resize-none"
-                          />
-                        </FormControl>
-                        <p className="text-sm text-muted-foreground">
-                          Tell us about your learning objectives to get more relevant analogies
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="preferredComplexity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-base font-medium text-white">
-                          Preferred Explanation Style
+                          Default Knowledge Level
                         </FormLabel>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {[
-                            { value: "simple", label: "Simple", desc: "Brief and straightforward" },
-                            { value: "moderate", label: "Moderate", desc: "Balanced detail level" },
-                            { value: "detailed", label: "Detailed", desc: "Comprehensive explanations" }
+                            { value: "beginner", label: "Beginner", desc: "Simple explanations" },
+                            { value: "intermediate", label: "Intermediate", desc: "Balanced detail level" },
+                            { value: "advanced", label: "Advanced", desc: "Technical depth" }
                           ].map((option) => (
                             <button
                               key={option.value}
                               type="button"
-                              onClick={() => form.setValue('preferredComplexity', option.value as any)}
+                              onClick={() => field.onChange(option.value)}
+                              className={`p-3 rounded-lg border text-left transition-colors ${
+                                field.value === option.value
+                                  ? 'border-primary bg-primary/20 text-primary'
+                                  : 'border-border bg-card hover:bg-card-hover text-foreground'
+                              }`}
+                            >
+                              <div className="font-medium">{option.label}</div>
+                              <div className="text-sm opacity-70">{option.desc}</div>
+                            </button>
+                          ))}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="analogyStyle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-base font-medium text-white">
+                          Analogy Style
+                        </FormLabel>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {[
+                            { value: "conversational", label: "Conversational", desc: "Friendly and relatable" },
+                            { value: "technical", label: "Technical", desc: "Precise and detailed" },
+                            { value: "creative", label: "Creative", desc: "Imaginative and fun" }
+                          ].map((option) => (
+                            <button
+                              key={option.value}
+                              type="button"
+                              onClick={() => field.onChange(option.value)}
                               className={`p-3 rounded-lg border text-left transition-colors ${
                                 field.value === option.value
                                   ? 'border-primary bg-primary/20 text-primary'

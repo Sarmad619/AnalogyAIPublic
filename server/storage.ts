@@ -3,7 +3,7 @@ import {
   type InsertUser, 
   type Analogy, 
   type InsertAnalogy,
-  type UpdateProfileRequest,
+  type UpdateProfile,
   type UpsertUser,
   users,
   analogies,
@@ -18,7 +18,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: string, updates: UpdateProfileRequest): Promise<User | undefined>;
+  updateUser(id: string, updates: UpdateProfile): Promise<User | undefined>;
 
   // Analogy operations
   getAnalogy(id: string): Promise<Analogy | undefined>;
@@ -61,7 +61,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: string, updates: UpdateProfileRequest): Promise<User | undefined> {
+  async updateUser(id: string, updates: UpdateProfile): Promise<User | undefined> {
     const [user] = await db
       .update(users)
       .set({ ...updates, updatedAt: new Date() })
@@ -183,11 +183,11 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: string, updates: UpdateProfileRequest): Promise<User | undefined> {
+  async updateUser(id: string, updates: UpdateProfile): Promise<User | undefined> {
     const user = this.users.get(id);
     if (!user) return undefined;
     
-    const updatedUser = { ...user, ...updates };
+    const updatedUser = { ...user, ...updates, updatedAt: new Date() };
     this.users.set(id, updatedUser);
     return updatedUser;
   }

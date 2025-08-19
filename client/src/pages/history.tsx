@@ -10,12 +10,13 @@ export function History() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterFavorites, setFilterFavorites] = useState(false);
 
-  const { data: analogies = [], isLoading } = useQuery({
+  const { data: historyData, isLoading } = useQuery({
     queryKey: ['/api/history'],
   });
 
+  const analogies = (historyData as any)?.analogies || [];
   const filteredAnalogies = Array.isArray(analogies) ? analogies.filter((analogy: any) => {
-    const matchesSearch = analogy.concept.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = analogy.topic.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFavorite = !filterFavorites || analogy.isFavorite;
     return matchesSearch && matchesFavorite;
   }) : [];
