@@ -1,0 +1,44 @@
+I want you to generate a single Markdown file (`MIGRATION_GUIDE.md`) that provides a complete, step-by-step guide for migrating this project from Replit to my local machine. 
+
+⚠️ Important Context:
+- Replit is proprietary and uses hidden/personalized dependencies, configs, and environment setups that do not map cleanly to local systems.
+- I am an amateur coder. The guide must assume **zero prior knowledge** and provide all necessary details in a clear, foolproof order.
+- I will use GeminiCLI (in VSCode) to follow the guide, so the `.md` file should give the AI everything it needs to fully migrate the app without errors.
+- The end goal: The app should run **locally on my machine exactly as it runs on Replit**.
+
+📋 The `MIGRATION_GUIDE.md` must include:
+1. **Project Overview**  
+   - Type of project (Node.js, Python, etc.)  
+   - Main entry point file  
+   - Explanation of Replit-specific configs/files  
+
+2. **Dependency Extraction**  
+   - Full list of all dependencies (system-level + language-specific)  
+   - Versions (use `poetry.lock`, `requirements.txt`, `package.json`, or `.replit` where available)  
+   - How to recreate the same dependency environment locally  
+
+3. **Environment Setup**  
+   - Local OS prerequisites (Node, Python, Java, etc.)  
+   - Installation instructions for Windows, macOS, and Linux separately  
+   - Environment variables needed (and sample `.env` file if applicable)  
+
+4. **Config & Hidden Files**  
+   - Replit files (`.replit`, `replit.nix`, `pyproject.toml`, etc.) explained in detail  
+   - Equivalent local setup (how to translate them to `npm`, `venv`, `pip`, or `docker`)  
+
+5. **Migration Steps**  
+   - Exact commands to clone/download project from Replit  
+   - Commands to set up dependencies locally  
+   - Commands to start the app locally  
+
+6. **Testing & Verification**  
+   - How to test that everything works the same as in Replit  
+   - Troubleshooting common migration errors  
+
+7. **Extra Automation**  
+   - Optional: Dockerfile or VSCode DevContainer config for guaranteed reproducibility  
+
+8. **Final Run**  
+   - Exact one-liner to launch the app locally once migration is complete  
+
+📌 Output: A single file named `MIGRATION_GUIDE.md` with all the above, written in simple but precise language so I (a beginner) can follow it, and detailed enough that GeminiCLI can execute everything automatically.
