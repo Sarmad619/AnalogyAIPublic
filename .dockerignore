@@ -1,0 +1,15 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+
+# Environment variables
+.env
+
+# Build output
+dist
+
+# Documentation
+*.md

@@ -1,7 +1,7 @@
 import type { RequestHandler } from "express";
 import { storage } from "./storage";
 
-// Augment the Express Request type to include the user object IAP will provide
+// Augment the Express Request type for our simplified user object
 declare global {
   namespace Express {
     interface User {
@@ -14,52 +14,35 @@ declare global {
   }
 }
 
-// This middleware checks for IAP headers and creates a user session.
+// This is our public "guest" user for the live, deployed site
+const publicUser = {
+  id: "public-guest-user",
+  email: "guest@analogy.ai",
+};
+
+// This middleware function attaches the public user to every incoming request
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  // These headers are securely set by IAP after a user authenticates.
-  const userIdHeader = req.header('x-goog-authenticated-user-id');
-  const userEmailHeader = req.header('x-goog-authenticated-user-email');
+  req.user = publicUser;
 
-  if (!userIdHeader || !userEmailHeader) {
-    // If running locally without IAP, we can fall back to our mock user.
-    if (process.env.NODE_ENV === 'development') {
-      const mockUserId = "local-dev-user";
-      const user = await storage.getUser(mockUserId);
-      if (user) {
-        // We use a simplified user object for consistency
-        req.user = { id: user.id, email: user.email || '' };
-      }
-      return next();
-    }
-    // In production, if headers are missing, the user is not authorized.
-    return res.status(401).send('Unauthorized: Missing IAP headers.');
-  }
-
-  // The format is "accounts.google.com:12345..."
-  const userId = userIdHeader.split(':').pop() as string;
-  const userEmail = userEmailHeader.split(':').pop() as string;
-
-  // Create a simplified user object for the request
-  req.user = { id: userId, email: userEmail };
-
-  // Ensure the user exists in our database.
+  // Ensure the guest user exists in the database
   try {
-    const user = await storage.getUser(userId);
+    const user = await storage.getUser(publicUser.id);
     if (!user) {
       await storage.upsertUser({
-        id: userId,
-        email: userEmail,
-        firstName: userEmail.split('@')[0], // A sensible default
+        id: publicUser.id,
+        email: publicUser.email,
+        firstName: "Public",
+        lastName: "User",
       });
     }
     next();
   } catch (error) {
-    console.error("Failed to upsert IAP user:", error);
+    console.error("Failed to upsert public user:", error);
     next(error);
   }
 };
 
-// In this setup, we don't need a complex setup function.
+// We don't need a complex setup function for this strategy
 export async function setupAuth(app: import("express").Express) {
-  console.log("Using IAP authentication strategy.");
+  console.log("Using public guest user authentication strategy.");
 }
