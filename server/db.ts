@@ -32,3 +32,4 @@ const createPool = async () => {
 
 const pool = await createPool();
 export const db = drizzle(pool, { schema });
+export { pool };

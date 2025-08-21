@@ -1,28 +1,53 @@
 import type { Express, Request, Response } from "express";
 import { createServer, Server } from "http";
+import passport from "passport";
 import { storage } from "./storage";
 import {
   generateAnalogySchema,
   regenerateAnalogySchema,
   updateProfileSchema,
   type GenerateAnalogyRequest
-} from "@shared/schema";
+} from "../shared/schema";
 import { generateAnalogy, regenerateAnalogy } from "./services/openai";
-import { setupAuth, isAuthenticated } from "./iapAuth";
+import { setupAuth, isAuthenticated } from "./googleAuth"; // <-- Use the new auth file
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  await setupAuth(app);
+  setupAuth(app); // Note: this is now synchronous
 
-  app.get('/api/auth/user', isAuthenticated, async (req: Request, res) => {
-    try {
-      const userId = req.user!.id;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+  // === AUTHENTICATION ROUTES ===
+  app.get(
+    "/api/auth/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
+
+  app.get(
+    "/api/auth/google/callback",
+    passport.authenticate("google", {
+      failureRedirect: "/login", // Or some error page
+      successRedirect: "/", // Redirect to dashboard on success
+    })
+  );
+
+  app.get('/api/auth/user', (req, res) => {
+    if (req.isAuthenticated()) {
+      res.json(req.user);
+    } else {
+      res.status(401).json(null);
     }
   });
+
+  app.post("/api/logout", (req, res, next) => {
+      req.logout((err) => {
+          if (err) { return next(err); }
+          req.session.destroy(() => {
+              res.clearCookie('connect.sid'); 
+              res.status(200).json({ message: "Logged out successfully" });
+          });
+      });
+  });
+
+  // === APPLICATION ROUTES ===
+  // All routes below this line are now protected by the 'isAuthenticated' middleware
 
   app.post("/api/analogy", isAuthenticated, async (req: Request, res: Response) => {
     try {
@@ -61,32 +86,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating analogy:", error);
       if (error instanceof Error && error.message.includes("Failed to generate analogy")) {
-        return res.status(500).json({
+        return res.status(500).json({ 
           message: "AI service error. Please check your OpenAI API key and try again.",
           details: error.message
         });
       }
-      res.status(400).json({
-        message: error instanceof Error ? error.message : "Invalid request data"
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Invalid request data" 
       });
     }
   });
+
+  // (The rest of your API routes like /history, /profile, etc., go here and are also protected)
+  // I'll add them back in for completeness.
 
   app.post("/api/analogy/:id/feedback", isAuthenticated, async (req: Request, res: Response) => {
     try {
       const userId = req.user!.id;
       const analogyId = req.params.id;
-      const { helpful } = req.body;
 
       const analogy = await storage.getAnalogy(analogyId);
       if (!analogy || analogy.userId !== userId) {
         return res.status(404).json({ message: "Analogy not found" });
       }
 
-      res.json({
-        message: helpful ? "Thanks for your feedback! We're glad this analogy was helpful." : "Thanks for your feedback! We'll work on improving our analogies.",
-        success: true
-      });
+      res.json({ message: "Feedback recorded.", success: true });
 
     } catch (error) {
       console.error("Error recording feedback:", error);
@@ -136,8 +160,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error("Error regenerating analogy:", error);
-      res.status(400).json({
-        message: error instanceof Error ? error.message : "Invalid request data"
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Invalid request data" 
       });
     }
   });
@@ -200,8 +224,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error("Error updating profile:", error);
-      res.status(400).json({
-        message: error instanceof Error ? error.message : "Invalid request data"
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "Invalid request data" 
       });
     }
   });
@@ -219,7 +243,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedAnalogy = await storage.updateAnalogy(analogyId, { isFavorite });
 
-      // This is the corrected line
       if (!updatedAnalogy) {
         return res.status(500).json({ message: "Failed to update analogy" });
       }

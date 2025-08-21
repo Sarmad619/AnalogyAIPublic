@@ -2,10 +2,23 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export function Navigation() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest("/api/logout", "POST"),
+    onSuccess: () => {
+      // Invalidate all queries to clear user data and refresh the app state
+      queryClient.invalidateQueries();
+      // Optionally, redirect to the landing page immediately
+      window.location.href = "/";
+    },
+  });
 
   const isActive = (path: string) => {
     return location === path;
@@ -15,12 +28,10 @@ export function Navigation() {
     <header className="nav-sticky sticky top-0 z-50 w-full">
       <div className="max-w-4xl mx-auto px-4 py-3">
         <div className="flex h-12 items-center justify-between">
-          {/* Logo */}
           <Link href="/" className="flex items-center">
             <h1 className="text-lg font-bold text-gradient">AnalogyAI</h1>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-2">
             <Link 
               href="/"
@@ -44,13 +55,13 @@ export function Navigation() {
               variant="ghost"
               size="sm"
               className="nav-link ml-2 text-sm px-3 py-1"
-              onClick={() => window.location.href = "/api/logout"}
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
             >
-              Logout
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
             </Button>
           </nav>
           
-          {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-2">
             <Button
               variant="ghost"
@@ -63,7 +74,6 @@ export function Navigation() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-glass-border py-3 mt-3">
             <nav className="flex flex-col space-y-1">
@@ -92,9 +102,10 @@ export function Navigation() {
                 variant="ghost"
                 size="sm"
                 className="nav-link justify-start px-4"
-                onClick={() => window.location.href = "/api/logout"}
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
               >
-                Logout
+                {logoutMutation.isPending ? "Logging out..." : "Logout"}
               </Button>
             </nav>
           </div>
