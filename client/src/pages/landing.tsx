@@ -2,12 +2,12 @@ import { Button } from "@/components/ui/button";
 
 export function Landing() {
   const handleSignIn = () => {
-    // This now redirects to our secure backend route to start the Google OAuth flow
+    // This redirects to our secure backend route to start the Google OAuth flow
     window.location.href = "/api/auth/google";
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 overflow-x-hidden">
       <div className="fixed inset-0 pointer-events-none">
         <div 
           className="absolute inset-0 opacity-20"
@@ -27,7 +27,7 @@ export function Landing() {
         </nav>
       </header>
 
-      <main className="w-full max-w-2xl text-center mt-20">
+      <main className="w-full max-w-2xl text-center mt-20 z-10">
         <div className="glassmorphism-strong p-8 md:p-12 rounded-2xl">
           <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">
             Unlock Understanding
@@ -44,6 +44,31 @@ export function Landing() {
           </Button>
         </div>
       </main>
+
+      {/* This is the restored section with the three floating cards */}
+      <div className="w-full max-w-4xl mt-16 grid md:grid-cols-3 gap-6 px-4 z-10">
+        <div className="glassmorphism p-6 text-center rounded-2xl animate-float">
+          <div className="text-primary text-3xl mb-3">🧠</div>
+          <h3 className="font-semibold text-white mb-2">Personalized Learning</h3>
+          <p className="text-gray-300 text-sm">
+            Analogies tailored to your interests and knowledge level.
+          </p>
+        </div>
+        <div className="glassmorphism p-6 text-center rounded-2xl animate-float" style={{ animationDelay: '2s' }}>
+          <div className="text-primary text-3xl mb-3">📚</div>
+          <h3 className="font-semibold text-white mb-2">Save & Organize</h3>
+          <p className="text-gray-300 text-sm">
+            Keep track of your favorite analogies and learning progress.
+          </p>
+        </div>
+        <div className="glassmorphism p-6 text-center rounded-2xl animate-float" style={{ animationDelay: '4s' }}>
+          <div className="text-primary text-3xl mb-3">⚡</div>
+          <h3 className="font-semibold text-white mb-2">Instant Clarity</h3>
+          <p className="text-gray-300 text-sm">
+            Get clear explanations for any complex topic in seconds.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
