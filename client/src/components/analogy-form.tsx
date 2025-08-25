@@ -45,7 +45,6 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
   const [interestsInput, setInterestsInput] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
 
-  // Fetch user profile to auto-populate preferences
   const { data: profile } = useQuery({
     queryKey: ['/api/profile'],
   });
@@ -61,22 +60,15 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
     },
   });
 
-  // Auto-populate form with user preferences
   useEffect(() => {
     if (profile) {
       const userProfile = profile as any;
-      
-      // Set default knowledge level from profile
       if (userProfile.defaultKnowledgeLevel) {
         form.setValue('personalization.knowledgeLevel', userProfile.defaultKnowledgeLevel);
       }
-      
-      // Set default analogy style from profile
       if (userProfile.analogyStyle) {
         form.setValue('personalization.analogyStyle', userProfile.analogyStyle);
       }
-      
-      // Set interests from profile
       if (userProfile.personalizationInterests?.length > 0) {
         setInterests(userProfile.personalizationInterests);
       }
@@ -138,7 +130,6 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Concept Input */}
           <FormField
             control={form.control}
             name="concept"
@@ -153,8 +144,8 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
                 <FormControl>
                   <Input
                     {...field}
-                    placeholder="e.g., Quantum physics, Machine learning, Economic inflation..."
-                    className="input-minimal text-lg"
+                    placeholder="e.g., Quantum physics, Machine learning..."
+                    className="input-minimal text-base"
                     disabled={isLoading}
                   />
                 </FormControl>
@@ -163,7 +154,6 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
             )}
           />
 
-          {/* Context Input */}
           <FormField
             control={form.control}
             name="context"
@@ -178,7 +168,7 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
                 <FormControl>
                   <Textarea
                     {...field}
-                    placeholder="Provide any specific context about how you'll use this knowledge..."
+                    placeholder="Provide any specific context..."
                     rows={3}
                     className="input-minimal resize-none"
                     disabled={isLoading}
@@ -189,7 +179,6 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
             )}
           />
 
-          {/* Interests Section */}
           <div>
             <label className="flex items-center text-base font-medium text-white mb-3">
               <div className="w-6 h-6 bg-primary/80 rounded-full flex items-center justify-center mr-3">
@@ -202,7 +191,7 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
               <Input
                 value={interestsInput}
                 onChange={(e) => setInterestsInput(e.target.value)}
-                placeholder="e.g., cooking, sports, music, movies..."
+                placeholder="e.g., cooking, sports, music..."
                 className="input-minimal flex-1"
                 disabled={isLoading}
                 onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addInterest())}
@@ -217,7 +206,6 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
               </Button>
             </div>
 
-            {/* Interest Tags */}
             {interests.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {interests.map((interest) => (
@@ -240,7 +228,6 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
             )}
           </div>
 
-          {/* Knowledge Level */}
           <FormField
             control={form.control}
             name="personalization.knowledgeLevel"
@@ -269,14 +256,13 @@ export function AnalogyForm({ onAnalogy }: AnalogyFormProps) {
             )}
           />
 
-          {/* Generate Button */}
           <Button 
             type="submit"
             disabled={isLoading}
-            className="w-full btn-primary text-lg py-3 flex items-center justify-center space-x-2"
+            className="w-full btn-primary text-base md:text-lg py-3 flex items-center justify-center space-x-2"
           >
             <Wand2 size={20} />
-            <span>{isLoading ? "Generating..." : "Generate Personalized Analogy"}</span>
+            <span>{isLoading ? "Generating..." : "Generate Analogy"}</span>
           </Button>
         </form>
       </Form>

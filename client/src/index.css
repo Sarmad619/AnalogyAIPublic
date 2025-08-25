@@ -35,13 +35,14 @@ body {
   color: var(--foreground);
   line-height: 1.6;
   min-height: 100vh;
+  overflow-x: hidden; /* <-- ADD THIS LINE to prevent horizontal scroll */
 }
 
 /* Component Classes */
 .section-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px; /* <-- REDUCE PADDING for mobile */
   padding-top: 80px;
   padding-bottom: 40px;
 }
