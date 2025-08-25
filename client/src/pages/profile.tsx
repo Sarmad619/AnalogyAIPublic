@@ -50,7 +50,6 @@ export function Profile() {
     },
   });
 
-  // Update form when profile data loads
   useEffect(() => {
     if (profile && typeof profile === 'object') {
       form.reset({
@@ -113,20 +112,21 @@ export function Profile() {
         <div className="section-header">
           <h1 className="section-title">Profile Settings</h1>
           <p className="section-subtitle">
-            Customize your learning preferences for better personalized analogies
+            Customize your learning preferences for better personalized analogies.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        {/* This grid now stacks vertically on mobile and becomes 3 columns on large screens */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* User Info Card */}
           <div className="card-minimal p-6">
             <div className="flex items-center space-x-4 mb-6">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center shrink-0">
                 <User className="text-primary-foreground" size={24} />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white">{(user as any)?.firstName || 'User'}</h3>
-                <p className="text-muted-foreground">{(user as any)?.email}</p>
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-white truncate">{(user as any)?.firstName || 'User'}</h3>
+                <p className="text-muted-foreground truncate">{(user as any)?.email}</p>
               </div>
             </div>
             <div className="space-y-3 text-sm">
@@ -187,7 +187,8 @@ export function Profile() {
                               </span>
                             ))}
                           </div>
-                          <div className="flex gap-2">
+                          {/* This flex container will now stack on small screens */}
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <input
                               type="text"
                               placeholder="Add an interest..."
@@ -208,8 +209,9 @@ export function Profile() {
                               type="button"
                               variant="outline"
                               size="sm"
+                              className="shrink-0"
                               onClick={(e) => {
-                                const input = (e.target as HTMLElement).previousElementSibling as HTMLInputElement;
+                                const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
                                 const newInterest = input.value.trim();
                                 if (newInterest && !field.value?.includes(newInterest)) {
                                   field.onChange([...(field.value || []), newInterest]);
@@ -222,14 +224,14 @@ export function Profile() {
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Add interests that will be auto-populated in your Dashboard preferences. 
-                          These will be automatically loaded when generating analogies.
+                          Add interests that will be auto-populated in your Dashboard preferences.
                         </p>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
+                  {/* These sections with buttons are already responsive with md:grid-cols-3 */}
                   <FormField
                     control={form.control}
                     name="defaultKnowledgeLevel"
@@ -250,28 +252,15 @@ export function Profile() {
                               onClick={() => field.onChange(option.value)}
                               className={`p-3 rounded-lg border text-left transition-all duration-200 ${
                                 field.value === option.value
-                                  ? 'border-primary bg-primary/20 text-primary ring-2 ring-primary/50 shadow-lg transform scale-105'
-                                  : 'border-border bg-card hover:bg-card-hover text-foreground hover:border-primary/30 hover:scale-102'
+                                  ? 'border-primary bg-primary/20 text-primary ring-2 ring-primary/50'
+                                  : 'border-border bg-card hover:bg-card-hover text-foreground hover:border-primary/30'
                               }`}
                             >
-                              <div className="font-medium flex items-center gap-2">
-                                {field.value === option.value && (
-                                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                                )}
-                                {option.label}
-                              </div>
+                              <div className="font-medium">{option.label}</div>
                               <div className="text-sm opacity-70">{option.desc}</div>
                             </button>
                           ))}
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          This will be your default complexity level for all new analogies
-                          {field.value && (
-                            <span className="text-primary font-medium ml-2">
-                              (Currently selected: {field.value.charAt(0).toUpperCase() + field.value.slice(1)})
-                            </span>
-                          )}
-                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -297,28 +286,15 @@ export function Profile() {
                               onClick={() => field.onChange(option.value)}
                               className={`p-3 rounded-lg border text-left transition-all duration-200 ${
                                 field.value === option.value
-                                  ? 'border-primary bg-primary/20 text-primary ring-2 ring-primary/50 shadow-lg transform scale-105'
-                                  : 'border-border bg-card hover:bg-card-hover text-foreground hover:border-primary/30 hover:scale-102'
+                                  ? 'border-primary bg-primary/20 text-primary ring-2 ring-primary/50'
+                                  : 'border-border bg-card hover:bg-card-hover text-foreground hover:border-primary/30'
                               }`}
                             >
-                              <div className="font-medium flex items-center gap-2">
-                                {field.value === option.value && (
-                                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                                )}
-                                {option.label}
-                              </div>
+                              <div className="font-medium">{option.label}</div>
                               <div className="text-sm opacity-70">{option.desc}</div>
                             </button>
                           ))}
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          This will be your default style for all analogies generated
-                          {field.value && (
-                            <span className="text-primary font-medium ml-2">
-                              (Currently selected: {field.value.charAt(0).toUpperCase() + field.value.slice(1)})
-                            </span>
-                          )}
-                        </p>
                         <FormMessage />
                       </FormItem>
                     )}
