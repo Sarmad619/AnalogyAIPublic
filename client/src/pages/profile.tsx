@@ -6,7 +6,6 @@ import { z } from "zod";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -17,7 +16,8 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Settings, Save } from "lucide-react";
+import { User, Settings, Save, CheckCircle2 } from "lucide-react"; // <-- Import CheckCircle2
+import { cn } from "@/lib/utils";
 
 const profileSchema = z.object({
   personalizationInterests: z.array(z.string()).optional(),
@@ -86,6 +86,7 @@ export function Profile() {
   };
 
   if (isLoading) {
+    // ... loading state remains the same
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
@@ -116,10 +117,9 @@ export function Profile() {
           </p>
         </div>
 
-        {/* This grid now stacks vertically on mobile and becomes 3 columns on large screens */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* User Info Card */}
           <div className="card-minimal p-6">
+            {/* ... User Info Card remains the same ... */}
             <div className="flex items-center space-x-4 mb-6">
               <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center shrink-0">
                 <User className="text-primary-foreground" size={24} />
@@ -147,7 +147,6 @@ export function Profile() {
             </div>
           </div>
 
-          {/* Settings Form */}
           <div className="lg:col-span-2">
             <div className="card-minimal p-6">
               <div className="flex items-center space-x-3 mb-6">
@@ -157,6 +156,7 @@ export function Profile() {
 
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* ... Interests FormField remains the same ... */}
                   <FormField
                     control={form.control}
                     name="personalizationInterests"
@@ -187,9 +187,8 @@ export function Profile() {
                               </span>
                             ))}
                           </div>
-                          {/* This flex container will now stack on small screens */}
                           <div className="flex flex-col sm:flex-row gap-2">
-                            <input
+                            <Input
                               type="text"
                               placeholder="Add an interest..."
                               className="input-minimal flex-1"
@@ -231,7 +230,6 @@ export function Profile() {
                     )}
                   />
 
-                  {/* These sections with buttons are already responsive with md:grid-cols-3 */}
                   <FormField
                     control={form.control}
                     name="defaultKnowledgeLevel"
@@ -250,14 +248,18 @@ export function Profile() {
                               key={option.value}
                               type="button"
                               onClick={() => field.onChange(option.value)}
-                              className={`p-3 rounded-lg border text-left transition-all duration-200 ${
+                              className={cn(
+                                "p-3 rounded-lg border text-left transition-all duration-200",
                                 field.value === option.value
-                                  ? 'border-primary bg-primary/20 text-primary ring-2 ring-primary/50'
-                                  : 'border-border bg-card hover:bg-card-hover text-foreground hover:border-primary/30'
-                              }`}
+                                  ? 'border-primary bg-primary text-primary-foreground shadow-lg transform scale-105'
+                                  : 'border-border bg-card hover:bg-card-hover text-foreground'
+                              )}
                             >
-                              <div className="font-medium">{option.label}</div>
-                              <div className="text-sm opacity-70">{option.desc}</div>
+                              <div className="flex items-center justify-between font-medium">
+                                <span>{option.label}</span>
+                                {field.value === option.value && <CheckCircle2 className="h-5 w-5" />}
+                              </div>
+                              <div className={cn("text-sm", field.value === option.value ? "opacity-80" : "opacity-70")}>{option.desc}</div>
                             </button>
                           ))}
                         </div>
@@ -284,14 +286,18 @@ export function Profile() {
                               key={option.value}
                               type="button"
                               onClick={() => field.onChange(option.value)}
-                              className={`p-3 rounded-lg border text-left transition-all duration-200 ${
+                              className={cn(
+                                "p-3 rounded-lg border text-left transition-all duration-200",
                                 field.value === option.value
-                                  ? 'border-primary bg-primary/20 text-primary ring-2 ring-primary/50'
-                                  : 'border-border bg-card hover:bg-card-hover text-foreground hover:border-primary/30'
-                              }`}
+                                  ? 'border-primary bg-primary text-primary-foreground shadow-lg transform scale-105'
+                                  : 'border-border bg-card hover:bg-card-hover text-foreground'
+                              )}
                             >
-                              <div className="font-medium">{option.label}</div>
-                              <div className="text-sm opacity-70">{option.desc}</div>
+                              <div className="flex items-center justify-between font-medium">
+                                <span>{option.label}</span>
+                                {field.value === option.value && <CheckCircle2 className="h-5 w-5" />}
+                              </div>
+                              <div className={cn("text-sm", field.value === option.value ? "opacity-80" : "opacity-70")}>{option.desc}</div>
                             </button>
                           ))}
                         </div>
